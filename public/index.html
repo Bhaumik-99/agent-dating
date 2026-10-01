@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agentic Dating — AI Agents Date On Your Behalf</title>
+<meta name="description" content="Each person is represented by an AI agent. The agents read public LinkedIn and Instagram profiles, then date each other to find the best matches.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== DESIGN TOKENS ===== */
+:root {
+  --bg: #070910;
+  --surface: #0e1118;
+  --card: #13161f;
+  --card2: #181c27;
+  --border: #232839;
+  --border2: #2d3347;
+  --text: #f0f4ff;
+  --text2: #9ba4bb;
+  --text3: #6b7490;
+  --accent: #ff4d8d;
+  --accent2: #7c6aff;
+  --accent3: #00d4aa;
+  --glow: rgba(124,106,255,0.15);
+  --glow2: rgba(255,77,141,0.12);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% -5%, rgba(124,106,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(255,77,141,0.06) 0%, transparent 60%);
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+/* ===== LAYOUT ===== */
+.wrap { max-width: 1380px; margin: auto; padding: 0 28px 80px; }
+
+/* ===== NAV ===== */
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 28px; max-width: 1380px; margin: auto;
+}
+.brand {
+  font-size: 22px; font-weight: 900; letter-spacing: -.04em;
+}
+.brand span { color: var(--accent); }
+.nav-pill {
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 99px; font-size: 12px; color: var(--text2);
+  background: rgba(255,255,255,0.03);
+}
+
+/* ===== HERO ===== */
+.hero {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; margin-top: 20px; align-items: start;
+}
+.hero-left h1 {
+  font-size: 52px; font-weight: 900; letter-spacing: -.05em;
+  line-height: 1.0; margin-bottom: 16px;
+}
+.hero-left h1 em { font-style: normal; color: var(--accent); }
+.hero-sub { color: var(--text2); font-size: 15px; line-height: 1.7; max-width: 500px; }
+
+/* ===== FORM PANEL ===== */
+.form-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  position: relative; overflow: hidden;
+}
+.form-panel::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.form-title { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
+.form-desc { color: var(--text2); font-size: 13px; margin-bottom: 20px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.field input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 12px 14px; border-radius: var(--radius-sm);
+  font-size: 14px; font-family: inherit;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.field input:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(124,106,255,0.15);
+}
+.field input::placeholder { color: var(--text3); }
+
+.btn-row { display: flex; gap: 10px; margin-top: 18px; }
+.btn {
+  flex: 1; border: 0; border-radius: var(--radius-sm); padding: 13px 16px;
+  font-weight: 700; font-size: 14px; font-family: inherit;
+  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; box-shadow: 0 4px 24px rgba(255,77,141,0.3);
+}
+.btn-primary:hover { box-shadow: 0 6px 32px rgba(255,77,141,0.45); transform: translateY(-1px); }
+.btn-secondary {
+  background: var(--card2); border: 1px solid var(--border2);
+  color: var(--text2);
+}
+.btn-secondary:hover { border-color: var(--accent2); color: var(--text); background: rgba(124,106,255,0.1); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+/* ===== STATUS MESSAGE ===== */
+#msg {
+  margin-top: 14px; font-size: 13px; min-height: 20px; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+}
+#msg.error { color: #ff6b6b; }
+#msg.success { color: var(--accent3); }
+
+/* ===== STATS PANEL ===== */
+.stats-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px;
+}
+.stats-panel .label { color: var(--text3); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.stats-panel .tagline { font-size: 26px; font-weight: 900; letter-spacing: -.03em; margin: 10px 0 20px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px; text-align: center;
+}
+.stat .num { font-size: 30px; font-weight: 900; letter-spacing: -.04em; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat .unit { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+.flow-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.flow-step {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px;
+}
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; color: white;
+}
+.step-text { color: var(--text2); }
+
+/* ===== MAIN PANEL ===== */
+.main-panel {
+  margin-top: 28px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex; gap: 4px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; flex-wrap: nowrap;
+}
+.tab {
+  padding: 9px 16px; border-radius: 99px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text3); transition: all .2s; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.tab:hover { color: var(--text); background: var(--card2); }
+.tab.active {
+  background: var(--card2); color: var(--text);
+  border-color: var(--border2);
+}
+.tab-content { padding: 24px; }
+
+/* ===== LOADING SPINNER ===== */
+.spinner {
+  width: 18px; height: 18px; border: 2px solid var(--border2);
+  border-top-color: var(--accent2); border-radius: 50%;
+  animation: spin .7s linear infinite; display: inline-block; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== PEOPLE GRID ===== */
+.people-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; }
+.person-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+  cursor: pointer; transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.person-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0; transition: opacity .2s;
+}
+.person-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.person-card:hover::before { opacity: 1; }
+.person-card.selected { border-color: var(--accent2); background: var(--card2); }
+.person-card.selected::before { opacity: 1; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+.person-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.person-meta { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+.tag-mini {
+  display: inline-block; padding: 3px 7px; border-radius: 99px;
+  border: 1px solid var(--border2); font-size: 10px; color: var(--text3);
+  margin: 2px 2px 0 0;
+}
+
+/* ===== PROFILE VIEW ===== */
+.profile-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.profile-header { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 20px; }
+.profile-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 900; flex-shrink: 0;
+  color: white;
+}
+.profile-name { font-size: 32px; font-weight: 900; letter-spacing: -.04em; }
+.profile-summary { color: var(--text2); font-size: 14px; line-height: 1.7; margin-top: 6px; }
+.profile-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+.section-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 18px;
+}
+.section-title {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px;
+}
+.chip {
+  display: inline-block; padding: 5px 10px; border-radius: 99px;
+  border: 1px solid var(--border2); font-size: 12px; color: var(--text2);
+  margin: 4px 4px 0 0; background: var(--card2);
+  transition: all .2s;
+}
+.chip:hover { border-color: var(--accent2); color: var(--text); }
+
+.source-card {
+  background: var(--card2); border: 1px solid var(--border2);
+  border-radius: var(--radius-xs); padding: 12px 14px; margin-top: 8px;
+  font-size: 12px; display: flex; align-items: center; gap: 10px;
+  transition: all .2s;
+}
+.source-card:hover { border-color: var(--accent2); }
+.source-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.source-icon.li { background: rgba(10,102,194,0.2); color: #4a9eff; }
+.source-icon.ig { background: rgba(228,64,95,0.2); color: var(--accent); }
+.source-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+.source-status { font-size: 11px; margin-left: auto; flex-shrink: 0; }
+.source-status.ok { color: var(--accent3); }
+.source-status.warn { color: #ffb347; }
+
+.evidence-list { list-style: none; }
+.evidence-list li {
+  padding: 8px 12px; margin-bottom: 6px; border-left: 2px solid var(--accent2);
+  background: var(--card2); border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  font-size: 12px; color: var(--text2); font-style: italic;
+}
+
+/* ===== DATE VIEW ===== */
+.date-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.date-pair { display: flex; align-items: center; gap: 10px; }
+.date-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: white; flex-shrink: 0;
+}
+.date-avatar.a { background: linear-gradient(135deg, var(--accent), #c44b7b); }
+.date-avatar.b { background: linear-gradient(135deg, var(--accent2), #4a30e8); }
+.date-x { color: var(--text3); font-size: 20px; font-weight: 900; }
+.date-meta { color: var(--text2); font-size: 13px; }
+.date-meta strong { color: var(--text); }
+
+.date-body { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+
+.chat-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+}
+.chat-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; }
+.chat-scroll { max-height: 440px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+.bubble {
+  padding: 10px 14px; border-radius: 14px;
+  max-width: 85%; font-size: 13px; line-height: 1.6;
+  border: 1px solid var(--border);
+  animation: bubbleIn .3s ease forwards;
+  opacity: 0; transform: translateY(8px);
+}
+@keyframes bubbleIn { to { opacity: 1; transform: translateY(0); } }
+.bubble.a-speak { background: rgba(255,77,141,0.08); border-color: rgba(255,77,141,0.2); align-self: flex-start; }
+.bubble.b-speak { background: rgba(124,106,255,0.08); border-color: rgba(124,106,255,0.2); align-self: flex-end; }
+.bubble.think {
+  background: rgba(0,212,170,0.06); border-color: rgba(0,212,170,0.15);
+  font-style: italic; opacity: 0.85; font-size: 12px; align-self: center;
+}
+.bubble-agent { font-size: 10px; font-weight: 700; margin-bottom: 4px; letter-spacing: .05em; }
+.bubble.a-speak .bubble-agent { color: var(--accent); }
+.bubble.b-speak .bubble-agent { color: var(--accent2); }
+.bubble.think .bubble-agent { color: var(--accent3); }
+
+.date-sidebar { display: flex; flex-direction: column; gap: 14px; }
+.decision-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+}
+.decision-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
+.decision-item {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;
+}
+.decision-badge {
+  padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;
+  flex-shrink: 0;
+}
+.decision-badge.yes { background: rgba(0,212,170,0.15); color: var(--accent3); border: 1px solid rgba(0,212,170,0.3); }
+.decision-badge.no { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
+.decision-reason { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+.chemistry-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+}
+.chemistry-score {
+  font-size: 48px; font-weight: 900; letter-spacing: -.04em;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.chemistry-label { color: var(--text3); font-size: 12px; margin-top: 2px; }
+
+.date-selector {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+}
+.date-selector select {
+  width: 100%; background: var(--card2); border: 1px solid var(--border2);
+  color: var(--text); padding: 10px 12px; border-radius: var(--radius-xs);
+  font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
+  margin-top: 6px;
+}
+.date-selector label { font-size: 12px; font-weight: 600; color: var(--text3); }
+
+/* ===== RANKINGS VIEW ===== */
+.rank-controls {
+  display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+}
+.rank-controls label { font-size: 13px; color: var(--text2); flex-shrink: 0; }
+.rank-select {
+  background: var(--card2); border: 1px solid var(--border2);
+  color: var(--text); padding: 9px 14px; border-radius: var(--radius-xs);
+  font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
+  flex: 1; min-width: 200px;
+}
+.ranking-table { display: flex; flex-direction: column; gap: 6px; }
+.rank-row {
+  display: grid; grid-template-columns: 44px 1fr 140px 80px;
+  gap: 14px; align-items: center;
+  padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all .2s; cursor: pointer;
+}
+.rank-row:hover { border-color: var(--border2); background: var(--card2); transform: translateX(4px); }
+.rank-num {
+  width: 32px; height: 32px; border-radius: 50%; font-weight: 800; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card2); color: var(--text3); border: 1px solid var(--border2);
+}
+.rank-num.top1 { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; }
+.rank-num.top2 { background: linear-gradient(135deg, #c0c0c0, #909090); color: #000; border: none; }
+.rank-num.top3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; border: none; }
+.rank-name { font-weight: 700; font-size: 14px; }
+.rank-reasons { font-size: 11px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
+.rank-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+.rank-score { font-size: 20px; font-weight: 900; text-align: right; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ===== BREAKDOWN MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(7,9,16,0.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px; backdrop-filter: blur(8px);
+  animation: fadeIn .2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 28px; max-width: 520px; width: 100%;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  animation: slideUp .3s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.modal-title { font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
+.modal-close { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 4px; }
+.breakdown-item { margin-bottom: 14px; }
+.breakdown-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.breakdown-label span:first-child { color: var(--text2); text-transform: capitalize; }
+.breakdown-label span:last-child { font-weight: 700; color: var(--text); }
+.breakdown-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.breakdown-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; }
+.breakdown-shared { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+}
+.empty-icon { font-size: 48px; margin-bottom: 14px; }
+.empty-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.empty-desc { color: var(--text2); font-size: 14px; }
+
+/* ===== DISCLAIMER ===== */
+.disclaimer {
+  font-size: 11px; color: var(--text3); margin-top: 14px; line-height: 1.6;
+  padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  height: 3px; background: var(--border); border-radius: 99px;
+  overflow: hidden; margin: 12px 0;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px; transition: width .4s ease;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) { .people-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  .profile-layout { grid-template-columns: 1fr; }
+  .date-body { grid-template-columns: 1fr; }
+  .people-grid { grid-template-columns: repeat(3, 1fr); }
+  .rank-row { grid-template-columns: 40px 1fr 80px; }
+  .rank-bar-wrap { display: none; }
+}
+@media (max-width: 640px) {
+  nav, .wrap { padding-left: 16px; padding-right: 16px; }
+  .hero-left h1 { font-size: 38px; }
+  .people-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(3,1fr); }
+  .btn-row { flex-direction: column; }
+  .tabs { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">agentic<span>/</span>dating</div>
+  <div class="nav-pill">2-source profiles · 25 people · simulated agent dates</div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Agents date.<br>You get the <em>best match.</em></h1>
+      <p class="hero-sub">Paste one public LinkedIn + Instagram URL. The agent reads only those two pages, builds a grounded profile, then dates the other agents on your behalf. Every ranking is earned through actual agent dialogue.</p>
+
+      <div class="form-panel" style="margin-top:28px;">
+        <div class="form-title">Add a person</div>
+        <div class="form-desc">Official public links only. No private profiles. No third sources.</div>
+        <div class="field">
+          <label>Person name</label>
+          <input id="name" placeholder="e.g. Ada Lovelace" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>LinkedIn public profile URL</label>
+          <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Instagram public profile URL</label>
+          <input id="instagram" placeholder="https://www.instagram.com/username/" autocomplete="off">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="analyzeBtn">Analyze person</button>
+          <button class="btn btn-secondary" id="demoBtn">Load 25-person demo</button>
+        </div>
+        <div id="msg"></div>
+      </div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="label">How it works</div>
+      <div class="tagline">Source → Agent → Date → Rank</div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="num" id="statPeople">0</div><div class="unit">people</div></div>
+        <div class="stat"><div class="num" id="statLinks">0</div><div class="unit">source links</div></div>
+        <div class="stat"><div class="num" id="statDates">0</div><div class="unit">comparisons</div></div>
+      </div>
+
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">1</div><div class="step-text">Paste LinkedIn + Instagram URL for each person</div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-text">Agent reads both pages — only those two sources</div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-text">Profile generated: needs, hobbies, interests, qualities</div></div>
+        <div class="flow-step"><div class="step-num">4</div><div class="step-text">Agents date each other — dialogue, decision, chemistry</div></div>
+        <div class="flow-step"><div class="step-num">5</div><div class="step-text">Everyone gets a ranked list of their best matches</div></div>
+      </div>
+
+      <div class="disclaimer">
+        Agent date dialogues are explicitly simulated. They are not statements made by the real people.
+        Only public profile data is used. No sensitive attributes are inferred.
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel">
+    <div class="tabs">
+      <div class="tab active" data-tab="people" id="tab-people">🧑‍🤝‍🧑 People</div>
+      <div class="tab" data-tab="profile" id="tab-profile">🧠 Agent Profile</div>
+      <div class="tab" data-tab="date" id="tab-date">💬 Agents Dating</div>
+      <div class="tab" data-tab="rank" id="tab-rank">🏆 Rankings</div>
+    </div>
+
+    <div class="tab-content">
+      <div id="view-people"></div>
+      <div id="view-profile" class="hidden"></div>
+      <div id="view-date" class="hidden"></div>
+      <div id="view-rank" class="hidden"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BREAKDOWN MODAL -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Compatibility Breakdown</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* ===== STATE ===== */
+let state = { people: [], rankings: {}, selected: null };
+let dateCache = {};
+
+/* ===== UTILS ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+const chips = (xs = [], cls = '') => xs.map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join('');
+const miniTags = (xs = []) => xs.slice(0, 3).map(x => `<span class="tag-mini">${esc(x)}</span>`).join('');
+
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function setMsg(text, type = '') {
+  const el = $('msg');
+  el.className = type;
+  el.innerHTML = type === 'loading'
+    ? `<span class="spinner"></span><span>${esc(text)}</span>`
+    : esc(text);
+}
+
+function updateStats() {
+  const n = state.people.length;
+  $('statPeople').textContent = n;
+  $('statLinks').textContent = n * 2;
+  $('statDates').textContent = n > 1 ? n * (n - 1) : 0;
+}
+
+/* ===== TABS ===== */
+function activate(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  ['people', 'profile', 'date', 'rank'].forEach(t => {
+    $(`view-${t}`).classList.toggle('hidden', t !== tab);
+  });
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  activate(t.dataset.tab);
+  if (t.dataset.tab === 'profile' && state.selected) renderProfile();
+  if (t.dataset.tab === 'rank') renderRank();
+  if (t.dataset.tab === 'date') renderDateSelector();
+  if (t.dataset.tab === 'people') renderPeople();
+});
+
+/* ===== PEOPLE VIEW ===== */
+function renderPeople() {
+  const el = $('view-people');
+  if (!state.people.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">👥</div>
+      <div class="empty-title">No people yet</div>
+      <div class="empty-desc">Load the 25-person demo or add your own public links above.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `
+    <p style="color:var(--text2);font-size:13px;margin-bottom:14px;">Click any person to view their agent profile — grounded only in the two public source pages.</p>
+    <div class="people-grid">
+      ${state.people.map(p => `
+        <div class="person-card ${p.id === state.selected ? 'selected' : ''}" onclick="selectPerson('${p.id}')">
+          <div class="person-name">${esc(p.name)}</div>
+          <div class="person-meta">2 sources · ${(p.profile?.interests || []).length} interests</div>
+          <div>${miniTags(p.profile?.interests || [])}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+/* ===== PROFILE VIEW ===== */
+async function selectPerson(id) {
+  state.selected = id;
+  renderPeople(); // update selection state
+  renderProfile();
+  activate('profile');
+}
+
+function renderProfile() {
+  const el = $('view-profile');
+  const p = state.people.find(x => x.id === state.selected);
+  if (!p) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧠</div><div class="empty-title">Select a person first</div></div>`;
+    return;
+  }
+  const q = p.profile || {};
+  const liLen = p.sources?.linkedin?.text?.length || 0;
+  const igLen = p.sources?.instagram?.text?.length || 0;
+
+  el.innerHTML = `
+    <div class="profile-layout">
+      <div class="profile-header">
+        <div class="profile-avatar">${initials(p.name)}</div>
+        <div style="flex:1">
+          <div class="profile-name">${esc(p.name)}</div>
+          <div class="profile-summary">${esc(q.summary || 'No summary available.')}</div>
+          <div class="profile-actions">
+            <button class="btn btn-primary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="goDate('${p.id}')">Have this agent date another →</button>
+            <button class="btn btn-secondary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="activate('rank');renderRank('${p.id}')">See rankings for ${esc(p.name)} →</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-card">
+          <div class="section-title">Needs</div>
+          <div>${chips(q.needs)}</div>
+        </div>
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Hobbies</div>
+          <div>${q.hobbies?.length ? chips(q.hobbies) : '<span style="color:var(--text3);font-size:13px;">None extracted from sources</span>'}</div>
+        </div>
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Interests</div>
+          <div>${chips(q.interests)}</div>
+        </div>
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Qualities</div>
+          <div>${chips(q.qualities)}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-card">
+          <div class="section-title">Work Style</div>
+          <div>${chips(q.work_style)}</div>
+        </div>
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Social Style</div>
+          <div>${chips(q.social_style)}</div>
+        </div>
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Date Ideas</div>
+          <div>${chips(q.date_ideas)}</div>
+        </div>
+
+        <div class="section-card" style="margin-top:12px;">
+          <div class="section-title">Sources</div>
+          <a href="${esc(p.linkedin)}" target="_blank" class="source-card">
+            <div class="source-icon li">in</div>
+            <div class="source-url">${esc(p.linkedin)}</div>
+            <div class="source-status ${liLen > 500 ? 'ok' : 'warn'}">${liLen > 500 ? `✓ ${(liLen/1000).toFixed(1)}k` : '⚠ limited'}</div>
+          </a>
+          <a href="${esc(p.instagram)}" target="_blank" class="source-card">
+            <div class="source-icon ig">📷</div>
+            <div class="source-url">${esc(p.instagram)}</div>
+            <div class="source-status ${igLen > 300 ? 'ok' : 'warn'}">${igLen > 300 ? `✓ ${(igLen/1000).toFixed(1)}k` : '⚠ limited'}</div>
+          </a>
+        </div>
+
+        ${q.evidence?.length ? `
+          <div class="section-card" style="margin-top:12px;">
+            <div class="section-title">Evidence from sources</div>
+            <ul class="evidence-list">
+              ${q.evidence.map(e => `<li>${esc(e)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* ===== DATE VIEW ===== */
+function renderDateSelector() {
+  const el = $('view-date');
+  if (state.people.length < 2) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Need at least 2 people</div><div class="empty-desc">Load the demo or add people to see agents date.</div></div>`;
+    return;
+  }
+  if (!el.querySelector('.date-selector')) {
+    el.innerHTML = `
+      <div class="date-selector" style="margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end;">
+          <div>
+            <label>Agent A</label>
+            <select id="dateSelectA" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-xs);font-size:14px;font-family:inherit;outline:none;cursor:pointer;margin-top:6px;"></select>
+          </div>
+          <div>
+            <label>Agent B</label>
+            <select id="dateSelectB" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-xs);font-size:14px;font-family:inherit;outline:none;cursor:pointer;margin-top:6px;"></select>
+          </div>
+          <button class="btn btn-primary" style="flex:none;" id="startDateBtn">Start Date →</button>
+        </div>
+      </div>
+      <div id="dateOutput"></div>
+    `;
+    populateDateSelects();
+    $('startDateBtn').onclick = () => {
+      const a = state.people.find(p => p.id === $('dateSelectA').value);
+      const b = state.people.find(p => p.id === $('dateSelectB').value);
+      if (a && b && a.id !== b.id) runDate(a, b);
+    };
+  }
+}
+
+function populateDateSelects() {
+  ['dateSelectA', 'dateSelectB'].forEach((id, idx) => {
+    const sel = $(id);
+    if (!sel) return;
+    sel.innerHTML = state.people.map((p, i) => `<option value="${esc(p.id)}" ${i === idx ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+  });
+}
+
+async function goDate(personId) {
+  const a = state.people.find(x => x.id === personId);
+  if (!a) return;
+  // Pick highest ranked match as B
+  const rank = state.rankings[personId];
+  const bId = rank?.[0]?.id;
+  const b = state.people.find(x => x.id === bId) || state.people.find(x => x.id !== personId);
+  if (!b) return;
+  activate('date');
+  renderDateSelector();
+  // Set selects
+  setTimeout(() => {
+    const selA = $('dateSelectA'), selB = $('dateSelectB');
+    if (selA) selA.value = a.id;
+    if (selB) selB.value = b.id;
+    runDate(a, b);
+  }, 50);
+}
+
+async function runDate(a, b) {
+  const key = `${a.id}_${b.id}`;
+  const output = $('dateOutput');
+  if (!output) return;
+
+  output.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
+    <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;"></div>
+    <div>Agents are going on a date…</div>
+  </div>`;
+
+  let dateData = dateCache[key];
+  if (!dateData) {
+    try {
+      const r = await fetch('/api/date', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a, b })
+      });
+      const j = await r.json();
+      dateData = j.date;
+      dateCache[key] = dateData;
+    } catch (e) {
+      output.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-title">Date failed</div><div class="empty-desc">${esc(e.message)}</div></div>`;
+      return;
+    }
+  }
+
+  renderDateOutput(a, b, dateData, output);
+}
+
+function renderDateOutput(a, b, d, container) {
+  const continueBoth = d.decision_a?.continue && d.decision_b?.continue;
+  const continueA = d.decision_a?.continue;
+  const continueB = d.decision_b?.continue;
+
+  const turns = (d.turns || []).map((t, i) => {
+    const isA = t.agent === a.name;
+    const isThink = t.type === 'think';
+    const cls = isThink ? 'think' : (isA ? 'a-speak' : 'b-speak');
+    const agentLabel = isThink ? `💭 ${esc(t.agent)} thinks` : esc(t.agent);
+    return `<div class="bubble ${cls}" style="animation-delay:${i * 0.08}s">
+      <div class="bubble-agent">${agentLabel}</div>
+      <div>${esc(t.text)}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="date-header">
+      <div class="date-pair">
+        <div class="date-avatar a">${initials(a.name)}</div>
+        <div><div style="font-weight:700">${esc(a.name)}</div><div class="date-meta" style="font-size:11px;">Agent A</div></div>
+      </div>
+      <div class="date-x">×</div>
+      <div class="date-pair">
+        <div class="date-avatar b">${initials(b.name)}</div>
+        <div><div style="font-weight:700">${esc(b.name)}</div><div class="date-meta" style="font-size:11px;">Agent B</div></div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div class="date-meta">📍 <strong>${esc(d.venue || 'Virtual')}</strong></div>
+        <div class="date-meta">🎯 Activity: <strong>${esc(d.activity || '—')}</strong></div>
+        <div class="date-meta">🔗 Shared: <strong>${esc(d.shared_interest || '—')}</strong></div>
+      </div>
+    </div>
+
+    <div class="date-body">
+      <div class="chat-wrap">
+        <div class="chat-title">Agent Date Transcript</div>
+        <div class="chat-scroll">${turns}</div>
+        <div class="disclaimer">${esc(d.disclaimer || 'Simulated agent dialogue — not statements made by the real people.')}</div>
+      </div>
+
+      <div class="date-sidebar">
+        <div class="chemistry-card">
+          <div class="section-title">Chemistry Score</div>
+          <div class="chemistry-score">${d.chemistry_score ?? '—'}<span style="font-size:20px;color:var(--text3);">/100</span></div>
+          <div class="chemistry-label">Based on simulated agent interaction + profile overlap</div>
+          <div class="progress-bar" style="margin-top:14px;"><div class="progress-fill" style="width:${d.chemistry_score || 0}%"></div></div>
+          ${continueBoth ? '<div style="color:var(--accent3);font-weight:700;margin-top:10px;font-size:13px;">✓ Both agents continue</div>' : '<div style="color:#ffb347;font-size:13px;margin-top:10px;">Mixed decision</div>'}
+        </div>
+
+        <div class="decision-card">
+          <div class="decision-title">Agent Decisions</div>
+          <div class="decision-item">
+            <div class="decision-badge ${continueA ? 'yes' : 'no'}">${continueA ? '✓ Continue' : '✗ Stop'}</div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px;">${esc(a.name)}</div>
+              <div class="decision-reason">${esc(d.decision_a?.reason || '—')}</div>
+            </div>
+          </div>
+          <div class="decision-item">
+            <div class="decision-badge ${continueB ? 'yes' : 'no'}">${continueB ? '✓ Continue' : '✗ Stop'}</div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px;">${esc(b.name)}</div>
+              <div class="decision-reason">${esc(d.decision_b?.reason || '—')}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Why they match</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+            The agents evaluated public-interest overlap, communication style compatibility, and proposed a specific shared activity — not a generic meeting.
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===== RANKINGS VIEW ===== */
+function renderRank(forPersonId) {
+  const el = $('view-rank');
+  if (!state.people.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">No people loaded</div></div>`;
+    return;
+  }
+
+  const personId = forPersonId || el.querySelector('.rank-select')?.value || state.people[0]?.id;
+
+  el.innerHTML = `
+    <div class="rank-controls">
+      <label>Rankings for:</label>
+      <select class="rank-select" id="rankPersonSelect" onchange="renderRank(this.value)">
+        ${state.people.map(p => `<option value="${esc(p.id)}" ${p.id === personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div id="rankList"></div>
+    <div class="disclaimer">Scores are simulated compatibility from agent profiles. Not claims about the real people.</div>
+  `;
+
+  const list = $('rankList');
+  const ranks = state.rankings[personId] || [];
+
+  if (!ranks.length) {
+    list.innerHTML = `<div style="color:var(--text3);font-size:14px;">No rankings available. Load people and compute rankings first.</div>`;
+    return;
+  }
+
+  list.innerHTML = `<div class="ranking-table">
+    ${ranks.map((r, i) => {
+      const person = state.people.find(p => p.id === r.id);
+      const numCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')">
+        <div class="rank-num ${numCls}">${i + 1}</div>
+        <div>
+          <div class="rank-name">${esc(r.name)}</div>
+          <div class="rank-reasons">${esc((r.reasons || []).join(' · '))}</div>
+        </div>
+        <div class="rank-bar-wrap">
+          <div class="rank-bar"><div class="rank-bar-fill" style="width:${r.score}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);">${r.score}%</div>
+        </div>
+        <div class="rank-score">${r.score}<span style="font-size:12px;color:var(--text3);">%</span></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ===== BREAKDOWN MODAL ===== */
+async function openBreakdown(personAId, personBId) {
+  const a = state.people.find(p => p.id === personAId);
+  const b = state.people.find(p => p.id === personBId);
+  if (!a || !b) return;
+
+  try {
+    const r = await fetch('/api/compatibility', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ a, b })
+    });
+    const data = await r.json();
+
+    $('modal-title').textContent = `${a.name} × ${b.name}`;
+    const dims = ['interests', 'hobbies', 'needs', 'work_style', 'social_style'];
+    $('modal-body').innerHTML = `
+      <div style="font-size:32px;font-weight:900;margin-bottom:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${data.score}% match</div>
+      ${dims.map(dim => {
+        const bk = data.breakdown?.[dim];
+        if (!bk) return '';
+        const label = dim.replace('_', ' ');
+        return `<div class="breakdown-item">
+          <div class="breakdown-label"><span>${label}</span><span>${bk.score}%</span></div>
+          <div class="breakdown-bar"><div class="breakdown-fill" style="width:${bk.score}%"></div></div>
+          ${bk.shared?.length ? `<div class="breakdown-shared">${bk.shared.map(s => `<span class="tag-mini">${esc(s)}</span>`).join('')}</div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal();goDate('${personAId}')">Watch them date →</button>
+    `;
+    $('modal').classList.remove('hidden');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function closeModal() {
+  $('modal').classList.add('hidden');
+}
+$('modal').onclick = e => { if (e.target === $('modal')) closeModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ===== DEMO LOAD ===== */
+$('demoBtn').onclick = async () => {
+  setMsg('Loading 25-person demo…', 'loading');
+  $('demoBtn').disabled = true;
+  try {
+    const r = await fetch('/api/demo');
+    if (!r.ok) throw new Error('Demo load failed');
+    const j = await r.json();
+    state.people = j.people || [];
+    state.rankings = j.rankings || {};
+    state.selected = state.people[0]?.id || null;
+    updateStats();
+    renderPeople();
+    if (state.selected) renderProfile();
+    renderRank(state.selected);
+    setMsg(`✓ Demo loaded: ${state.people.length} people.`, 'success');
+    activate('people');
+  } catch (e) {
+    setMsg(e.message, 'error');
+  } finally {
+    $('demoBtn').disabled = false;
+  }
+};
+
+/* ===== ANALYZE NEW PERSON ===== */
+$('analyzeBtn').onclick = async () => {
+  const name = $('name').value.trim();
+  const linkedin = $('linkedin').value.trim();
+  const instagram = $('instagram').value.trim();
+  if (!name || !linkedin || !instagram) {
+    setMsg('Please fill in name, LinkedIn, and Instagram.', 'error');
+    return;
+  }
+  setMsg(`Reading only the two supplied public pages for ${name}…`, 'loading');
+  $('analyzeBtn').disabled = true;
+  try {
+    const r = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, linkedin, instagram })
+    });
+    const j = await r.json();
+    if (!r.ok) { setMsg(j.error || 'Analysis failed.', 'error'); return; }
+
+    state.people = [...state.people, j];
+    state.selected = j.id;
+
+    // Recompute rankings with the full set
+    if (state.people.length >= 2) {
+      const rr = await fetch('/api/rank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ people: state.people })
+      });
+      const rj = await rr.json();
+      state.rankings = rj.rankings || {};
+    }
+
+    updateStats();
+    renderPeople();
+    renderProfile();
+    setMsg(`✓ Agent profile created for ${name}.`, 'success');
+    activate('profile');
+  } catch (e) {
+    setMsg(e.message, 'error');
+  } finally {
+    $('analyzeBtn').disabled = false;
+  }
+};
+
+/* ===== INIT ===== */
+renderPeople();
+$('demoBtn').click();
+</script>
+</body>
+</html>
