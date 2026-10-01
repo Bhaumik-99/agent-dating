@@ -32,8 +32,8 @@ app.get('/api/demo', async (req, res) => {
     if (!DEMO || !DEMO.people?.length) {
       return res.status(404).json({ error: 'No demo data available.' });
     }
-    // Always recompute rankings from stored profiles
-    const rankings = rankPeople(DEMO.people);
+    // Return deterministic cached rankings that incorporate the agent dates
+    const rankings = DEMO.rankings || rankPeople(DEMO.people, DEMO.sampleDates || {});
     res.json({ people: DEMO.people, rankings, sampleDates: DEMO.sampleDates || {} });
   } catch (e) {
     res.status(500).json({ error: e.message });

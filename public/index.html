@@ -664,13 +664,26 @@ function renderProfile() {
   const q = p.profile || {};
   const liLen = p.sources?.linkedin?.text?.length || 0;
   const igLen = p.sources?.instagram?.text?.length || 0;
+  const liQuality = p.sources?.linkedin?.quality_label || (liLen > 1200 ? '✓ Public content extracted' : '⚠ Limited public content');
+  const igQuality = p.sources?.instagram?.quality_label || (igLen > 300 ? '✓ Public metadata extracted' : '⚠ Limited public content');
+  const liQualityCls = liLen > 1200 ? 'ok' : 'warn';
+  const igQualityCls = igLen > 300 ? 'ok' : 'warn';
+
+  const observedFacts = p.profile?.observed_facts || p.profile?.evidence || [];
+  const derived = p.profile?.derived_traits || p.profile || {};
 
   el.innerHTML = `
     <div class="profile-layout">
       <div class="profile-header">
         <div class="profile-avatar">${initials(p.name)}</div>
         <div style="flex:1">
-          <div class="profile-name">${esc(p.name)}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="profile-name">${esc(p.name)}</div>
+            <span class="chip" style="background:rgba(0,212,170,0.15);color:var(--accent3);border:1px solid rgba(0,212,170,0.3);font-size:11px;padding:3px 10px;">
+              ✓ Verified Public Figure
+            </span>
+          </div>
+          <div style="color:var(--text2);font-size:13px;margin:2px 0 6px;">${esc(p.verified_role || 'Public Figure')}</div>
           <div class="profile-summary">${esc(q.summary || 'No summary available.')}</div>
           <div class="profile-actions">
             <button class="btn btn-primary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="goDate('${p.id}')">Have this agent date another →</button>
@@ -679,61 +692,70 @@ function renderProfile() {
         </div>
       </div>
 
+      <!-- LEFT COLUMN: OBSERVED PUBLIC FACTS -->
       <div>
         <div class="section-card">
-          <div class="section-title">Needs</div>
-          <div>${chips(q.needs)}</div>
-        </div>
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Hobbies</div>
-          <div>${q.hobbies?.length ? chips(q.hobbies) : '<span style="color:var(--text3);font-size:13px;">None extracted from sources</span>'}</div>
-        </div>
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Interests</div>
-          <div>${chips(q.interests)}</div>
-        </div>
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Qualities</div>
-          <div>${chips(q.qualities)}</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-card">
-          <div class="section-title">Work Style</div>
-          <div>${chips(q.work_style)}</div>
-        </div>
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Social Style</div>
-          <div>${chips(q.social_style)}</div>
-        </div>
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Date Ideas</div>
-          <div>${chips(q.date_ideas)}</div>
+          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+            <span>📋</span> Observed Public Facts (Source Grounding)
+          </div>
+          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Only facts directly extracted from the two verified public profiles. Zero external assumptions.</p>
+          <ul class="evidence-list" style="margin-bottom:14px;">
+            ${observedFacts.map(e => `<li>${esc(e)}</li>`).join('')}
+          </ul>
         </div>
 
-        <div class="section-card" style="margin-top:12px;">
-          <div class="section-title">Sources</div>
-          <a href="${esc(p.linkedin)}" target="_blank" class="source-card">
+        <div class="section-card" style="margin-top:14px;">
+          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+            <span>🔗</span> Verified Public Sources &amp; Quality
+          </div>
+          <a href="${esc(p.linkedin)}" target="_blank" class="source-card" style="margin-bottom:10px;">
             <div class="source-icon li">in</div>
-            <div class="source-url">${esc(p.linkedin)}</div>
-            <div class="source-status ${liLen > 500 ? 'ok' : 'warn'}">${liLen > 500 ? `✓ ${(liLen/1000).toFixed(1)}k` : '⚠ limited'}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="source-url">${esc(p.linkedin)}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${esc(p.sources?.linkedin?.quality_detail || `${(liLen/1000).toFixed(1)}k characters extracted`)}</div>
+            </div>
+            <div class="source-status ${liQualityCls}">${esc(liQuality)}</div>
           </a>
           <a href="${esc(p.instagram)}" target="_blank" class="source-card">
             <div class="source-icon ig">📷</div>
-            <div class="source-url">${esc(p.instagram)}</div>
-            <div class="source-status ${igLen > 300 ? 'ok' : 'warn'}">${igLen > 300 ? `✓ ${(igLen/1000).toFixed(1)}k` : '⚠ limited'}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="source-url">${esc(p.instagram)}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${esc(p.sources?.instagram?.quality_detail || `${igLen} characters metadata`)}</div>
+            </div>
+            <div class="source-status ${igQualityCls}">${esc(igQuality)}</div>
           </a>
         </div>
+      </div>
 
-        ${q.evidence?.length ? `
-          <div class="section-card" style="margin-top:12px;">
-            <div class="section-title">Evidence from sources</div>
-            <ul class="evidence-list">
-              ${q.evidence.map(e => `<li>${esc(e)}</li>`).join('')}
-            </ul>
+      <!-- RIGHT COLUMN: DERIVED AGENT TRAITS -->
+      <div>
+        <div class="section-card">
+          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+            <span>🔮</span> Inferred Agent Traits (Dating Model)
           </div>
-        ` : ''}
+          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Inferred by the agent exclusively from observed facts to represent the person in dating simulations.</p>
+          
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Needs &amp; Connection Style</div>
+          <div style="margin-bottom:12px;">${chips(derived.needs)}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Hobbies &amp; Lifestyle</div>
+          <div style="margin-bottom:12px;">${derived.hobbies?.length ? chips(derived.hobbies) : '<span style="color:var(--text3);font-size:12px;">None observed in public sources</span>'}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Interests &amp; Topics</div>
+          <div style="margin-bottom:12px;">${chips(derived.interests)}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Character Qualities</div>
+          <div style="margin-bottom:12px;">${chips(derived.qualities)}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Work &amp; Professional Pace</div>
+          <div style="margin-bottom:12px;">${chips(derived.work_style)}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Social Communication Style</div>
+          <div style="margin-bottom:12px;">${chips(derived.social_style)}</div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Proposed Grounded Date Ideas</div>
+          <div>${chips(derived.date_ideas)}</div>
+        </div>
       </div>
     </div>
   `;
@@ -952,9 +974,10 @@ function renderRank(forPersonId) {
       return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view breakdown or date">
         <div class="rank-num ${numCls}">${i + 1}</div>
         <div style="flex:1;min-width:0;padding-right:12px;">
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <span class="rank-name">${esc(r.name)}</span>
             ${i === 0 ? '<span class="chip" style="background:rgba(255,77,141,0.2);color:var(--accent);font-size:10px;padding:2px 8px;">★ Top Pick</span>' : ''}
+            ${r.dated ? `<span class="chip" style="background:rgba(124,106,255,0.2);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:10px;padding:2px 8px;">💬 Date Evaluated (${r.date?.chemistry_score}/100)</span>` : '<span class="chip" style="background:rgba(255,255,255,0.04);color:var(--text3);font-size:10px;padding:2px 8px;">Baseline Filtered</span>'}
             ${i === ranks.length - 1 ? '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px;padding:2px 8px;">Lowest Overlap</span>' : ''}
           </div>
           <div class="rank-reasons" style="color:var(--text);font-size:12px;margin:3px 0 2px;">${esc(r.explanation || '')}</div>

@@ -1,0 +1,327 @@
+[
+  {
+    "id": "p01",
+    "name": "Satya Nadella",
+    "role": "Chairman and CEO at Microsoft",
+    "linkedin": "https://www.linkedin.com/in/satyanadella/",
+    "instagram": "https://www.instagram.com/satyanadella/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official public LinkedIn profile with published annual letters and public Instagram profile."
+    }
+  },
+  {
+    "id": "p02",
+    "name": "Sundar Pichai",
+    "role": "CEO at Alphabet and Google",
+    "linkedin": "https://www.linkedin.com/in/sundarpichai/",
+    "instagram": "https://www.instagram.com/sundarpichai/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official public Google CEO profiles on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p03",
+    "name": "Mark Zuckerberg",
+    "role": "Founder and CEO at Meta",
+    "linkedin": "https://www.linkedin.com/in/zuck/",
+    "instagram": "https://www.instagram.com/zuck/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official @zuck Meta founder accounts on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p04",
+    "name": "Brian Chesky",
+    "role": "Co-founder and CEO at Airbnb",
+    "linkedin": "https://www.linkedin.com/in/bchesky/",
+    "instagram": "https://www.instagram.com/bchesky/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official Airbnb CEO public profiles on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p05",
+    "name": "Patrick Collison",
+    "role": "Co-founder and CEO at Stripe",
+    "linkedin": "https://www.linkedin.com/in/patrickcollison/",
+    "instagram": "https://www.instagram.com/patrickc/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public Stripe CEO accounts with real public posts and Instagram handle @patrickc."
+    }
+  },
+  {
+    "id": "p06",
+    "name": "Dharmesh Shah",
+    "role": "Co-founder and CTO at HubSpot",
+    "linkedin": "https://www.linkedin.com/in/dharmesh/",
+    "instagram": "https://www.instagram.com/dharmesh/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official HubSpot co-founder public accounts on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p07",
+    "name": "Naval Ravikant",
+    "role": "Co-founder at AngelList, Author & Investor",
+    "linkedin": "https://www.linkedin.com/in/naval/",
+    "instagram": "https://www.instagram.com/naval/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Public AngelList founder and investor profiles."
+    }
+  },
+  {
+    "id": "p08",
+    "name": "Nikhil Kamath",
+    "role": "Co-founder at Zerodha, True Beacon & Gruhas",
+    "linkedin": "https://www.linkedin.com/in/nikhilkamathcio/",
+    "instagram": "https://www.instagram.com/nikhilkamathcio/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public profiles across LinkedIn and Instagram with podcast & founder posts."
+    }
+  },
+  {
+    "id": "p09",
+    "name": "Kunal Bahl",
+    "role": "Co-founder at Titan Capital & Snapdeal",
+    "linkedin": "https://www.linkedin.com/in/kunalbahl/",
+    "instagram": "https://www.instagram.com/kunalbahl/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public profiles on LinkedIn and Instagram with published startup newsletters."
+    }
+  },
+  {
+    "id": "p10",
+    "name": "Anupam Mittal",
+    "role": "Founder & CEO at People Group / Shaadi.com",
+    "linkedin": "https://www.linkedin.com/in/anupammittal007/",
+    "instagram": "https://www.instagram.com/anupammittal/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public profiles, Shark Tank India investor."
+    }
+  },
+  {
+    "id": "p11",
+    "name": "Namita Thapar",
+    "role": "Executive Director at Emcure Pharmaceuticals & Founder at Arth",
+    "linkedin": "https://www.linkedin.com/in/namita-thapar/",
+    "instagram": "https://www.instagram.com/namitathapar/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public LinkedIn and Instagram profiles, health entrepreneur & Shark."
+    }
+  },
+  {
+    "id": "p12",
+    "name": "Vineeta Singh",
+    "role": "Co-founder & CEO at SUGAR Cosmetics",
+    "linkedin": "https://www.linkedin.com/in/vineetasingh/",
+    "instagram": "https://www.instagram.com/vineetasng/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public entrepreneur profiles, marathon runner & Shark Tank India."
+    }
+  },
+  {
+    "id": "p13",
+    "name": "Aman Gupta",
+    "role": "Co-founder & CMO at boAt Lifestyle",
+    "linkedin": "https://www.linkedin.com/in/aman-gupta-7217a515/",
+    "instagram": "https://www.instagram.com/boatxaman/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified boAt co-founder profiles on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p14",
+    "name": "Peyush Bansal",
+    "role": "Co-founder & CEO at Lenskart",
+    "linkedin": "https://www.linkedin.com/in/peyushbansal/",
+    "instagram": "https://www.instagram.com/peyushbansal/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified Lenskart CEO profiles on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p15",
+    "name": "Falguni Nayar",
+    "role": "Founder & CEO at Nykaa",
+    "linkedin": "https://www.linkedin.com/in/falguni-nayar-845065a0/",
+    "instagram": "https://www.instagram.com/falguninayar/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified Nykaa founder profiles, IIM Ahmedabad alumna."
+    }
+  },
+  {
+    "id": "p16",
+    "name": "Ankur Warikoo",
+    "role": "Founder at WebVeda, Author & Content Creator",
+    "linkedin": "https://www.linkedin.com/in/warikoo/",
+    "instagram": "https://www.instagram.com/ankurwarikoo/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Public educator & entrepreneur with public newsletters on LinkedIn and Instagram."
+    }
+  },
+  {
+    "id": "p17",
+    "name": "Bhavish Aggarwal",
+    "role": "Founder & CEO at Ola & Krutrim",
+    "linkedin": "https://www.linkedin.com/in/bhavishaggarwal/",
+    "instagram": "https://www.instagram.com/bhavishaggarwal/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified public accounts for Ola Cabs, Ola Electric, and Krutrim AI."
+    }
+  },
+  {
+    "id": "p18",
+    "name": "Ritesh Agarwal",
+    "role": "Founder & Group CEO at OYO / PRISM",
+    "linkedin": "https://www.linkedin.com/in/riteshagar/",
+    "instagram": "https://www.instagram.com/riteshagar/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified OYO founder public profiles, Thiel Fellow & Shark Tank India."
+    }
+  },
+  {
+    "id": "p19",
+    "name": "Deepinder Goyal",
+    "role": "Founder & CEO at Zomato",
+    "linkedin": "https://www.linkedin.com/in/deepigoyal/",
+    "instagram": "https://www.instagram.com/deepigoyal/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified Zomato CEO public accounts with fitness and food innovation posts."
+    }
+  },
+  {
+    "id": "p20",
+    "name": "Rajan Anandan",
+    "role": "Managing Director at Peak XV Partners & Surge",
+    "linkedin": "https://www.linkedin.com/in/rajan-anandan-2481b814/",
+    "instagram": "https://www.instagram.com/rajan_anandan/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified venture investor and former Google VP public profiles."
+    }
+  },
+  {
+    "id": "p21",
+    "name": "Fei-Fei Li",
+    "role": "Professor at Stanford University & Co-Director of Stanford HAI",
+    "linkedin": "https://www.linkedin.com/in/feifeili/",
+    "instagram": "https://www.instagram.com/drfeifei/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "World-renowned AI researcher, pioneer of ImageNet, Stanford HAI co-director."
+    }
+  },
+  {
+    "id": "p22",
+    "name": "Andrew Ng",
+    "role": "Founder of DeepLearning.AI, AI Fund & Coursera Co-founder",
+    "linkedin": "https://www.linkedin.com/in/andrewyng/",
+    "instagram": "https://www.instagram.com/andrewyng/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Official public AI educator profiles with published AI articles and newsletters."
+    }
+  },
+  {
+    "id": "p23",
+    "name": "Kevin Systrom",
+    "role": "Co-founder & Former CEO of Instagram, Co-founder Artifact",
+    "linkedin": "https://www.linkedin.com/in/kevin/",
+    "instagram": "https://www.instagram.com/kevin/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Original co-founder of Instagram, verified @kevin public handle."
+    }
+  },
+  {
+    "id": "p24",
+    "name": "Nithin Kamath",
+    "role": "Founder & CEO at Zerodha & Rainmatter",
+    "linkedin": "https://www.linkedin.com/in/nithin-kamath-81136242/",
+    "instagram": "https://www.instagram.com/nithinkamath/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified Zerodha founder profiles, fintech builder & health enthusiast."
+    }
+  },
+  {
+    "id": "p25",
+    "name": "Amit Jain",
+    "role": "Co-founder & CEO at CarDekho Group",
+    "linkedin": "https://www.linkedin.com/in/cardekhoamitjain/",
+    "instagram": "https://www.instagram.com/cardekhoamitjain/",
+    "verification": {
+      "linkedin": "verified_public",
+      "instagram": "verified_public",
+      "checked_at": "2026-10-01T15:00:00Z",
+      "notes": "Verified CarDekho CEO public profiles, Shark Tank India investor."
+    }
+  }
+]

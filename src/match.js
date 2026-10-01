@@ -93,11 +93,76 @@ export function compatibility(a, b) {
   return { score, reasons: positiveReasons, breakdown };
 }
 
-export function rankPeople(people) {
+// Filter top candidate pairs for the dating round
+export function filterCandidatePairs(people, topK = 6) {
+  const pairSet = new Set();
+  const pairs = [];
+
+  for (const p of people) {
+    const scored = people
+      .filter(x => x.id !== p.id)
+      .map(x => ({ target: x, comp: compatibility(p, x) }))
+      .sort((a, b) => b.comp.score - a.comp.score)
+      .slice(0, topK);
+
+    for (const item of scored) {
+      const idA = p.id < item.target.id ? p.id : item.target.id;
+      const idB = p.id < item.target.id ? item.target.id : p.id;
+      const key = `${idA}_${idB}`;
+      if (!pairSet.has(key)) {
+        pairSet.add(key);
+        const personA = people.find(x => x.id === idA);
+        const personB = people.find(x => x.id === idB);
+        pairs.push([personA, personB]);
+      }
+    }
+  }
+
+  return pairs;
+}
+
+export function rankPeople(people, datesMap = {}) {
   return Object.fromEntries(people.map(p => {
     const list = people
       .filter(x => x.id !== p.id)
-      .map(x => ({ id: x.id, name: x.name, ...compatibility(p, x), personB: x }))
+      .map(x => {
+        const key = `${p.id}_${x.id}`;
+        const revKey = `${x.id}_${p.id}`;
+        const date = datesMap[key] || datesMap[revKey] || null;
+        const profileComp = compatibility(p, x);
+
+        let finalScore = profileComp.score;
+        let dated = false;
+        let mutualContinue = false;
+
+        if (date && typeof date.chemistry_score === 'number') {
+          dated = true;
+          const chem = date.chemistry_score;
+          const aCont = date.decision_a?.continue ?? true;
+          const bCont = date.decision_b?.continue ?? true;
+          mutualContinue = aCont && bCont;
+
+          // Date evaluation directly influences final compatibility:
+          // 40% profile baseline + 45% date chemistry + mutual decision bonus/penalty
+          const bonus = (aCont && bCont) ? 12 : (aCont || bCont ? -6 : -18);
+          finalScore = Math.round(Math.min(99, Math.max(15, (profileComp.score * 0.40) + (chem * 0.45) + bonus)) * 10) / 10;
+        } else {
+          // Pairs that didn't qualify for the candidate dating round receive a lower baseline ceiling
+          finalScore = Math.round(Math.min(52, profileComp.score * 0.70) * 10) / 10;
+        }
+
+        return {
+          id: x.id,
+          name: x.name,
+          score: finalScore,
+          profileScore: profileComp.score,
+          dated,
+          date,
+          reasons: profileComp.reasons,
+          breakdown: profileComp.breakdown,
+          personB: x
+        };
+      })
       .sort((a, b) => b.score - a.score);
 
     const total = list.length;
@@ -106,26 +171,37 @@ export function rankPeople(people) {
       list.map((item, idx) => {
         const rank = idx + 1;
         let explanation = '';
-        const sharedTopics = item.reasons.length ? item.reasons.join(', ') : 'no direct public overlap';
-        const aTopInterest = p.profile?.interests?.[0] || 'tech leadership';
-        const bTopInterest = item.personB?.profile?.interests?.[0] || 'entrepreneurship';
+        const d = item.date;
 
-        if (rank === 1) {
-          explanation = `Top match (#1/${total}) with ${item.score}% fit. Highest resonance: ${sharedTopics}. Both agents prioritize complementary pace and focus.`;
-        } else if (rank <= 3) {
-          explanation = `High tier match (#${rank}/${total}) with ${item.score}% fit. Notable synergy in ${sharedTopics}.`;
-        } else if (rank >= total - 1) {
-          explanation = `Lowest fit (#${rank}/${total}) with ${item.score}% fit. Divergent focus (${aTopInterest} vs ${bTopInterest}) and minimal shared hobbies or needs from public sources.`;
+        if (item.dated && d) {
+          const aReason = d.decision_a?.reason || 'Aligned conversational pace';
+          const bReason = d.decision_b?.reason || 'Shared professional vision';
+          if (d.decision_a?.continue && d.decision_b?.continue) {
+            if (rank === 1) {
+              explanation = `Top Match (#1/${total}) · ${item.score}% fit. Outstanding date chemistry (${d.chemistry_score}/100) at ${d.venue}. Both agents mutually decided to continue. ${p.name}: "${aReason}". ${item.name}: "${bReason}".`;
+            } else {
+              explanation = `Ranked #${rank}/${total} · ${item.score}% fit. High date chemistry (${d.chemistry_score}/100) discussing ${d.shared_interest || 'shared interests'}. Both agents agreed on a 2nd date.`;
+            }
+          } else {
+            const declinedBy = !d.decision_a?.continue ? p.name : item.name;
+            const decReason = !d.decision_a?.continue ? aReason : bReason;
+            explanation = `Ranked #${rank}/${total} · ${item.score}% fit. Dated at ${d.venue} (${d.chemistry_score}/100 chemistry), but did not advance: ${declinedBy} declined ("${decReason}").`;
+          }
         } else {
-          explanation = `Moderate fit (#${rank}/${total}) with ${item.score}% fit. ${item.reasons.length ? `Aligns partially on ${sharedTopics}.` : `Limited common ground in public profiles.`}`;
+          const aTop = p.profile?.interests?.[0] || 'core domain';
+          const bTop = item.personB?.profile?.interests?.[0] || 'primary domain';
+          if (rank >= total - 2) {
+            explanation = `Lowest Fit (#${rank}/${total}) · ${item.score}%. Filtered out before the dating round due to divergent focus (${aTop} vs ${bTop}) and minimal public overlap.`;
+          } else {
+            explanation = `Ranked #${rank}/${total} · ${item.score}%. Moderate baseline profile resonance (${item.profileScore}%), but did not qualify for the candidate dating round.`;
+          }
         }
 
-        // Clean up internal helper
         const { personB, ...cleanItem } = item;
         return {
           ...cleanItem,
           rank,
-          explanation,
+          explanation
         };
       })
     ];
