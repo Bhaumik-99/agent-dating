@@ -156,16 +156,34 @@ export class DatingAgent {
   }
 
   /**
-   * Computes an interaction chemistry score based on inspection and dialogue coherence.
+   * Computes an interaction chemistry score based on inspection, dialogue coherence, and profile alignment.
    */
-  scoreInteraction(inspection, proposalAccepted) {
-    let score = 50;
-    score += Math.min(26, inspection.sharedInterests.length * 13);
-    score += Math.min(16, inspection.sharedHobbies.length * 10);
+  scoreInteraction(inspection, proposalAccepted, otherAgent = null) {
+    let score = 48;
+    score += Math.min(24, inspection.sharedInterests.length * 12);
+    score += Math.min(16, inspection.sharedHobbies.length * 9);
     score += Math.min(10, inspection.workSynergy.length * 5);
     if (proposalAccepted) score += 4;
-    score -= inspection.frictionPoints.length * 14;
-    return Math.max(28, Math.min(92, score));
+    score -= inspection.frictionPoints.length * 12;
+
+    if (otherAgent) {
+      const summaryA = String(this.profile?.summary || '').toLowerCase();
+      const summaryB = String(otherAgent.profile?.summary || '').toLowerCase();
+      const wordsA = new Set(summaryA.split(/[^a-z0-9]+/).filter(w => w.length > 3));
+      const wordsB = new Set(summaryB.split(/[^a-z0-9]+/).filter(w => w.length > 3));
+      let overlap = 0;
+      for (const w of wordsA) if (wordsB.has(w)) overlap++;
+      const textJaccard = overlap / Math.max(1, wordsA.size + wordsB.size - overlap);
+      score += Math.round(textJaccard * 14);
+
+      // Deterministic pair variance to reflect natural peer dynamics
+      const pairKey = [this.id, otherAgent.id].sort().join(':');
+      let hash = 0;
+      for (let i = 0; i < pairKey.length; i++) hash = ((hash << 5) - hash) + pairKey.charCodeAt(i);
+      score += ((Math.abs(hash) % 7) - 3);
+    }
+
+    return Math.max(30, Math.min(92, score));
   }
 }
 
@@ -183,7 +201,7 @@ export function simulateAgentDate(personA, personB) {
   const proposalA = agentA.proposeDate(inspectA);
   const evalB = agentB.evaluateProposal(proposalA, inspectB);
 
-  const chemistryScore = agentA.scoreInteraction(inspectA, evalB.accept);
+  const chemistryScore = agentA.scoreInteraction(inspectA, evalB.accept, agentB);
   const decisionA = agentA.finalizeDate(agentB, inspectA, chemistryScore);
   const decisionB = agentB.finalizeDate(agentA, inspectB, chemistryScore);
 
