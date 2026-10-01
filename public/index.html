@@ -1440,12 +1440,49 @@ function renderProfile() {
 }
 
 /* ===== AGENT DATING VIEW ===== */
-function renderDateSelector() {
+function populateDateSelects(preferredA, preferredB) {
+  const selA = $('dateSelectA');
+  const selB = $('dateSelectB');
+  if (!selA || !selB) return;
+
+  const currentA = preferredA || selA.value || state.selected || state.people[0]?.id;
+  let currentB = preferredB || selB.value;
+
+  if (!currentB || currentB === currentA) {
+    const rankList = state.rankings[currentA] || [];
+    currentB = rankList[0]?.id || state.people.find(p => p.id !== currentA)?.id || state.people[1]?.id;
+  }
+
+  selA.innerHTML = state.people.map(p =>
+    `<option value="${esc(p.id)}" ${p.id === currentA ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})</option>`
+  ).join('');
+
+  selB.innerHTML = state.people.map(p =>
+    `<option value="${esc(p.id)}" ${p.id === currentB ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})</option>`
+  ).join('');
+
+  selA.value = currentA;
+  selB.value = currentB;
+
+  selA.onchange = () => {
+    const a = state.people.find(p => p.id === selA.value);
+    const b = state.people.find(p => p.id === selB.value);
+    if (a && b && a.id !== b.id) runDate(a, b);
+  };
+  selB.onchange = () => {
+    const a = state.people.find(p => p.id === selA.value);
+    const b = state.people.find(p => p.id === selB.value);
+    if (a && b && a.id !== b.id) runDate(a, b);
+  };
+}
+
+function renderDateSelector(preselectA, preselectB) {
   const el = $('view-date');
   if (state.people.length < 2) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-title">Minimum 2 Candidates Required</div><div class="empty-desc">Load the demo dataset to begin simulating agent dates.</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-title">Minimum 2 Candidates Required</div><div class="empty-desc">Add candidates or load the demo dataset to begin simulating agent dates.</div></div>`;
     return;
   }
+
   if (!el.querySelector('.date-selector-bar')) {
     el.innerHTML = `
       <div class="date-selector-bar">
@@ -1461,21 +1498,23 @@ function renderDateSelector() {
       </div>
       <div id="dateOutput"></div>
     `;
-    populateDateSelects();
     $('startDateBtn').onclick = () => {
       const a = state.people.find(p => p.id === $('dateSelectA').value);
       const b = state.people.find(p => p.id === $('dateSelectB').value);
       if (a && b && a.id !== b.id) runDate(a, b);
     };
   }
-}
 
-function populateDateSelects() {
-  ['dateSelectA', 'dateSelectB'].forEach((id, idx) => {
-    const sel = $(id);
-    if (!sel) return;
-    sel.innerHTML = state.people.map((p, i) => `<option value="${esc(p.id)}" ${i === idx ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
-  });
+  populateDateSelects(preselectA, preselectB);
+
+  const a = state.people.find(p => p.id === $('dateSelectA').value);
+  const b = state.people.find(p => p.id === $('dateSelectB').value);
+  if (a && b && a.id !== b.id) {
+    const output = $('dateOutput');
+    if (output && (!output.children.length || preselectA)) {
+      runDate(a, b);
+    }
+  }
 }
 
 async function goDate(personAId, personBId) {
@@ -1494,14 +1533,8 @@ async function goDate(personAId, personBId) {
   if (!b || a.id === b.id) return;
 
   activate('date');
-  renderDateSelector();
-
-  const selA = $('dateSelectA');
-  const selB = $('dateSelectB');
-  if (selA) selA.value = a.id;
-  if (selB) selB.value = b.id;
-
-  await runDate(a, b);
+  renderDateSelector(a.id, b.id);
+  $('mainWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function runDate(a, b) {
@@ -1527,6 +1560,7 @@ async function runDate(a, b) {
       if (!r.ok || !j.date) throw new Error(j.error || 'Failed to simulate date dialogue');
       dateData = j.date;
       dateCache[key] = dateData;
+      dateCache[revKey] = dateData;
     } catch (e) {
       output.innerHTML = `<div class="empty-state"><div class="empty-title">Simulation Failed</div><div class="empty-desc">${esc(e.message)}</div></div>`;
       return;
@@ -1970,14 +2004,25 @@ $('analyzeBtn').onclick = async () => {
       });
       const rj = await rr.json();
       state.rankings = rj.rankings || {};
+
+      // Cache all simulated dates generated for the new candidate
+      if (state.rankings[j.id]) {
+        state.rankings[j.id].forEach(item => {
+          if (item.date && item.id) {
+            dateCache[`${j.id}_${item.id}`] = item.date;
+            dateCache[`${item.id}_${j.id}`] = item.date;
+          }
+        });
+      }
     }
 
     updateStats();
     renderPeople();
     renderProfile();
     renderRank(j.id);
-    renderDateSelector();
-    setMsg(`✓ Live analysis complete for ${name}! Grounded profile dossier generated. Proceed to Agent Dating and Final Rankings below.`, 'success');
+    const topMatch = state.rankings[j.id]?.[0]?.id;
+    renderDateSelector(j.id, topMatch);
+    setMsg(`✓ Live agent active for ${name}! Grounded profile dossier generated. Proceed to Agent Dating and Final Rankings below.`, 'success');
     activate('profile');
     $('mainWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
