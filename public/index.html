@@ -1047,7 +1047,7 @@ input.invalid { border-color: rgba(248, 113, 113, 0.6) !important; }
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Satya Nadella', 'https://www.linkedin.com/in/satyanadella/', 'https://www.instagram.com/satyanadella/')">Satya Nadella</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Gary Vaynerchuk', 'https://www.linkedin.com/in/garyvaynerchuk/', 'https://www.instagram.com/garyvee/')">Gary Vaynerchuk</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Sam Altman', 'https://www.linkedin.com/in/sama/', 'https://www.instagram.com/sama/')">Sam Altman</button>
-          <button type="button" class="prefill-chip" onclick="prefillCandidate('Garry Tan', 'https://www.linkedin.com/in/garrytan/', 'https://www.instagram.com/garrytan/')">Garry Tan</button>
+          <button type="button" class="prefill-chip" onclick="prefillCandidate('Marc Andreessen', 'https://www.linkedin.com/in/pmarca/', 'https://www.instagram.com/pmarca/')">Marc Andreessen</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Ghazal Alagh', 'https://www.linkedin.com/in/ghazal-alagh/', 'https://www.instagram.com/ghazalalagh/')">Ghazal Alagh</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Dharmesh Shah', 'https://www.linkedin.com/in/dharmesh/', 'https://www.instagram.com/dharmeshshah/')">Dharmesh Shah</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Vineeta Singh', 'https://www.linkedin.com/in/vineetasingh/', 'https://www.instagram.com/vineetasng/')">Vineeta Singh</button>
@@ -1157,10 +1157,15 @@ function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function extractCanonicalSlug(url = '') {
+  const m = String(url).match(/linkedin\.com\/in\/([^/?#]+)/i) || String(url).match(/instagram\.com\/([^/?#]+)/i);
+  return m ? m[1].toLowerCase().replace(/[-_.]/g, '') : '';
+}
+
 function sanitizePeople(list = []) {
   const seenIds = new Set();
   const seenNames = new Set();
-  const seenUrls = new Set();
+  const seenSlugs = new Set();
   const result = [];
 
   for (const p of list || []) {
@@ -1175,18 +1180,19 @@ function sanitizePeople(list = []) {
       continue;
     }
 
-    const normLi = String(p.linkedin || '').toLowerCase().replace(/\/+$/, '');
-    const normIg = String(p.instagram || '').toLowerCase().replace(/\/+$/, '');
+    const liSlug = extractCanonicalSlug(p.linkedin);
+    const igSlug = extractCanonicalSlug(p.instagram);
+    const alphaName = nameLower.replace(/[^a-z0-9]/g, '');
 
-    // Skip duplicates by ID, normalized Name, or LinkedIn URL
-    if (seenIds.has(p.id) || seenNames.has(nameLower) || (normLi && seenUrls.has(normLi))) {
+    // Skip duplicates by ID, normalized Name, LinkedIn slug, or Instagram slug
+    if (seenIds.has(p.id) || seenNames.has(alphaName) || (liSlug && seenSlugs.has(liSlug))) {
       continue;
     }
 
     seenIds.add(p.id);
-    seenNames.add(nameLower);
-    if (normLi) seenUrls.add(normLi);
-    if (normIg) seenUrls.add(normIg);
+    seenNames.add(alphaName);
+    if (liSlug) seenSlugs.add(liSlug);
+    if (igSlug) seenSlugs.add(igSlug);
 
     result.push(p);
   }
@@ -1304,6 +1310,7 @@ function filterCandidates(val = '') {
 }
 
 function renderPeople() {
+  state.people = sanitizePeople(state.people);
   const el = $('view-people');
   if (!state.people.length) {
     el.innerHTML = `<div class="empty-state">
@@ -1563,6 +1570,7 @@ async function triggerDateSimulation() {
 }
 
 function renderDateSelector(preselectA, preselectB) {
+  state.people = sanitizePeople(state.people);
   const el = $('view-date');
   if (state.people.length < 2) {
     el.innerHTML = `<div class="empty-state"><div class="empty-title">Minimum 2 Candidates Required</div><div class="empty-desc">Add candidates or load the demo dataset to begin simulating agent dates.</div></div>`;
@@ -1788,6 +1796,7 @@ function renderDateOutput(a, b, d, container) {
 
 /* ===== RANKINGS LEDGER VIEW (ZERO OVERLAP GUARANTEED) ===== */
 function renderRank(forPersonId) {
+  state.people = sanitizePeople(state.people);
   const el = $('view-rank');
   if (!state.people.length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-title">No Profiles Loaded</div></div>`;
