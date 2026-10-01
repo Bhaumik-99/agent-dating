@@ -400,6 +400,8 @@ nav {
 .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
 .rank-score { font-size: 20px; font-weight: 900; text-align: right; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
+.hidden { display: none !important; }
+
 /* ===== BREAKDOWN MODAL ===== */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(7,9,16,0.85);
@@ -407,6 +409,7 @@ nav {
   z-index: 100; padding: 20px; backdrop-filter: blur(8px);
   animation: fadeIn .2s ease;
 }
+.modal-overlay.hidden { display: none !important; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
   background: var(--card); border: 1px solid var(--border2);
@@ -417,7 +420,17 @@ nav {
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .modal-title { font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
-.modal-close { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 4px; }
+.modal-close {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text2); font-size: 16px; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.modal-close:hover {
+  background: rgba(255,77,141,0.25); border-color: var(--accent);
+  color: #fff; transform: scale(1.08);
+}
 .breakdown-item { margin-bottom: 14px; }
 .breakdown-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
 .breakdown-label span:first-child { color: var(--text2); text-transform: capitalize; }
@@ -553,11 +566,11 @@ nav {
 </div>
 
 <!-- BREAKDOWN MODAL -->
-<div id="modal" class="modal-overlay hidden">
+<div id="modal" class="modal-overlay hidden" style="display: none;">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Compatibility Breakdown</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" title="Close" aria-label="Close">✕</button>
     </div>
     <div id="modal-body"></div>
   </div>
@@ -767,36 +780,44 @@ function populateDateSelects() {
   });
 }
 
-async function goDate(personId) {
-  const a = state.people.find(x => x.id === personId);
+async function goDate(personAId, personBId) {
+  const a = state.people.find(x => x.id === personAId);
   if (!a) return;
-  // Pick highest ranked match as B
-  const rank = state.rankings[personId];
-  const bId = rank?.[0]?.id;
-  const b = state.people.find(x => x.id === bId) || state.people.find(x => x.id !== personId);
-  if (!b) return;
+
+  let b = null;
+  if (personBId && personBId !== personAId) {
+    b = state.people.find(x => x.id === personBId);
+  }
+  if (!b) {
+    const rankList = state.rankings[personAId] || [];
+    const bId = rankList[0]?.id;
+    b = state.people.find(x => x.id === bId) || state.people.find(x => x.id !== personAId);
+  }
+  if (!b || a.id === b.id) return;
+
   activate('date');
   renderDateSelector();
-  // Set selects
-  setTimeout(() => {
-    const selA = $('dateSelectA'), selB = $('dateSelectB');
-    if (selA) selA.value = a.id;
-    if (selB) selB.value = b.id;
-    runDate(a, b);
-  }, 50);
+
+  const selA = $('dateSelectA');
+  const selB = $('dateSelectB');
+  if (selA) selA.value = a.id;
+  if (selB) selB.value = b.id;
+
+  await runDate(a, b);
 }
 
 async function runDate(a, b) {
   const key = `${a.id}_${b.id}`;
+  const revKey = `${b.id}_${a.id}`;
   const output = $('dateOutput');
   if (!output) return;
 
   output.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
     <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;"></div>
-    <div>Agents are going on a date…</div>
+    <div>Simulating agent date between <strong>${esc(a.name)}</strong> and <strong>${esc(b.name)}</strong>…</div>
   </div>`;
 
-  let dateData = dateCache[key];
+  let dateData = dateCache[key] || dateCache[revKey];
   if (!dateData) {
     try {
       const r = await fetch('/api/date', {
@@ -805,6 +826,7 @@ async function runDate(a, b) {
         body: JSON.stringify({ a, b })
       });
       const j = await r.json();
+      if (!r.ok || !j.date) throw new Error(j.error || 'Failed to simulate date dialogue');
       dateData = j.date;
       dateCache[key] = dateData;
     } catch (e) {
@@ -844,9 +866,9 @@ function renderDateOutput(a, b, d, container) {
         <div><div style="font-weight:700">${esc(b.name)}</div><div class="date-meta" style="font-size:11px;">Agent B</div></div>
       </div>
       <div style="margin-left:auto;text-align:right;">
-        <div class="date-meta">📍 <strong>${esc(d.venue || 'Virtual')}</strong></div>
-        <div class="date-meta">🎯 Activity: <strong>${esc(d.activity || '—')}</strong></div>
-        <div class="date-meta">🔗 Shared: <strong>${esc(d.shared_interest || '—')}</strong></div>
+        <div class="date-meta">📍 <strong>${esc(d.venue || 'Virtual Lounge')}</strong></div>
+        <div class="date-meta">🎯 Activity: <strong>${esc(d.activity || 'Interactive discussion')}</strong></div>
+        <div class="date-meta">🔗 Shared: <strong>${esc(d.shared_interest || 'Technology & Innovation')}</strong></div>
       </div>
     </div>
 
@@ -926,19 +948,27 @@ function renderRank(forPersonId) {
 
   list.innerHTML = `<div class="ranking-table">
     ${ranks.map((r, i) => {
-      const person = state.people.find(p => p.id === r.id);
       const numCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')">
+      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view breakdown or date">
         <div class="rank-num ${numCls}">${i + 1}</div>
-        <div>
-          <div class="rank-name">${esc(r.name)}</div>
-          <div class="rank-reasons">${esc((r.reasons || []).join(' · '))}</div>
+        <div style="flex:1;min-width:0;padding-right:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="rank-name">${esc(r.name)}</span>
+            ${i === 0 ? '<span class="chip" style="background:rgba(255,77,141,0.2);color:var(--accent);font-size:10px;padding:2px 8px;">★ Top Pick</span>' : ''}
+            ${i === ranks.length - 1 ? '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px;padding:2px 8px;">Lowest Overlap</span>' : ''}
+          </div>
+          <div class="rank-reasons" style="color:var(--text);font-size:12px;margin:3px 0 2px;">${esc(r.explanation || '')}</div>
+          ${r.reasons?.length ? `<div style="font-size:11px;color:var(--text3);">${esc(r.reasons.join(' · '))}</div>` : ''}
         </div>
         <div class="rank-bar-wrap">
           <div class="rank-bar"><div class="rank-bar-fill" style="width:${r.score}%"></div></div>
           <div style="font-size:10px;color:var(--text3);">${r.score}%</div>
         </div>
         <div class="rank-score">${r.score}<span style="font-size:12px;color:var(--text3);">%</span></div>
+        <div style="display:flex;gap:6px;margin-left:10px;" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="openBreakdown('${personId}','${r.id}')">📊 Breakdown</button>
+          <button class="btn btn-primary" style="padding:6px 12px;font-size:12px;" onclick="goDate('${personId}','${r.id}')">💬 Date</button>
+        </div>
       </div>`;
     }).join('')}
   </div>`;
@@ -950,6 +980,19 @@ async function openBreakdown(personAId, personBId) {
   const b = state.people.find(p => p.id === personBId);
   if (!a || !b) return;
 
+  $('modal-title').textContent = `${a.name} × ${b.name}`;
+  $('modal-body').innerHTML = `
+    <div style="text-align:center;padding:30px;color:var(--text2);">
+      <div class="spinner" style="width:24px;height:24px;margin:0 auto 10px;"></div>
+      <div>Calculating multi-factor compatibility breakdown…</div>
+    </div>
+  `;
+  const m = $('modal');
+  if (m) {
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+  }
+
   try {
     const r = await fetch('/api/compatibility', {
       method: 'POST',
@@ -958,30 +1001,74 @@ async function openBreakdown(personAId, personBId) {
     });
     const data = await r.json();
 
-    $('modal-title').textContent = `${a.name} × ${b.name}`;
-    const dims = ['interests', 'hobbies', 'needs', 'work_style', 'social_style'];
+    const dims = [
+      { key: 'interests', label: 'Interests & Passion Areas', icon: '🎯' },
+      { key: 'hobbies', label: 'Hobbies & Lifestyle', icon: '🎨' },
+      { key: 'needs', label: 'Needs & Partnership Alignment', icon: '🤝' },
+      { key: 'work_style', label: 'Work & Professional Pace', icon: '💼' },
+      { key: 'social_style', label: 'Social & Communication Style', icon: '💬' }
+    ];
+
     $('modal-body').innerHTML = `
-      <div style="font-size:32px;font-weight:900;margin-bottom:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${data.score}% match</div>
-      ${dims.map(dim => {
-        const bk = data.breakdown?.[dim];
-        if (!bk) return '';
-        const label = dim.replace('_', ' ');
-        return `<div class="breakdown-item">
-          <div class="breakdown-label"><span>${label}</span><span>${bk.score}%</span></div>
-          <div class="breakdown-bar"><div class="breakdown-fill" style="width:${bk.score}%"></div></div>
-          ${bk.shared?.length ? `<div class="breakdown-shared">${bk.shared.map(s => `<span class="tag-mini">${esc(s)}</span>`).join('')}</div>` : ''}
-        </div>`;
-      }).join('')}
-      <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal();goDate('${personAId}')">Watch them date →</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:34px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+            ${data.score}% match
+          </div>
+          <div style="color:var(--text2);font-size:12px;margin-top:2px;">Multi-factor agent compatibility</div>
+        </div>
+        <button class="btn btn-primary" style="flex:none;padding:10px 18px;font-size:13px;" onclick="closeModal();goDate('${a.id}','${b.id}')">
+          💬 Watch Them Date →
+        </button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        ${dims.map(({ key, label, icon }) => {
+          const bk = data.breakdown?.[key] || { score: 0, shared: [] };
+          return `<div class="breakdown-item">
+            <div class="breakdown-label" style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;">
+              <span>${icon} ${label}</span>
+              <span style="color:var(--accent2);font-weight:700;">${bk.score}%</span>
+            </div>
+            <div class="breakdown-bar" style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px;">
+              <div class="breakdown-fill" style="width:${bk.score}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;"></div>
+            </div>
+            ${bk.shared?.length ? `
+              <div class="breakdown-shared" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+                ${bk.shared.map(s => `<span class="tag-mini" style="background:rgba(124,106,255,0.12);border:1px solid rgba(124,106,255,0.3);color:var(--text);font-size:11px;padding:2px 8px;border-radius:6px;">${esc(s)}</span>`).join('')}
+              </div>
+            ` : '<div style="color:var(--text3);font-size:11px;">No direct public overlap in this dimension</div>'}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div style="margin-top:22px;display:flex;gap:10px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="closeModal();goDate('${a.id}','${b.id}')">
+          💬 Simulate Date Conversation Between Agents
+        </button>
+        <button class="btn btn-secondary" style="flex:none;padding:10px 18px;" onclick="closeModal()">
+          Close
+        </button>
+      </div>
     `;
-    $('modal').classList.remove('hidden');
   } catch (e) {
-    console.error(e);
+    $('modal-body').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">❌</div>
+        <div class="empty-title">Failed to load breakdown</div>
+        <div class="empty-desc">${esc(e.message)}</div>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="closeModal()">Close</button>
+      </div>
+    `;
   }
 }
 
 function closeModal() {
-  $('modal').classList.add('hidden');
+  const m = $('modal');
+  if (m) {
+    m.classList.add('hidden');
+    m.style.display = 'none';
+  }
 }
 $('modal').onclick = e => { if (e.target === $('modal')) closeModal(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -996,6 +1083,7 @@ $('demoBtn').onclick = async () => {
     const j = await r.json();
     state.people = j.people || [];
     state.rankings = j.rankings || {};
+    if (j.sampleDates) Object.assign(dateCache, j.sampleDates);
     state.selected = state.people[0]?.id || null;
     updateStats();
     renderPeople();

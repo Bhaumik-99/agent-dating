@@ -1,65 +1,133 @@
-const TOK = s => new Set((s || []).map(x => x.toLowerCase().trim()).filter(Boolean));
+const STOP_WORDS = new Set([
+  'and','the','to','of','in','a','an','for','with','on','at','from','by','about',
+  'as','into','through','over','after','how','what','why','gets','done','based',
+  'that','this','their','them','they','been','have','having','like','more','also',
+  'which','when','were','where','each','both','such','only','than'
+]);
 
-const overlap = (a, b) => {
-  const A = TOK(a), B = TOK(b);
-  const hit = [...A].filter(x => B.has(x));
-  return { hit, score: A.size ? hit.length / A.size : 0 };
-};
-
-// Weighted token overlap + partial match bonus
-function partialMatch(a, b) {
-  const A = TOK(a), B = TOK(b);
-  let partial = 0;
-  for (const ta of A) {
-    for (const tb of B) {
-      if (ta !== tb && (ta.includes(tb) || tb.includes(ta)) && Math.min(ta.length, tb.length) > 3) {
-        partial += 0.5;
+function extractTokens(arr) {
+  const tokens = new Set();
+  const rawPhrases = (arr || []).filter(Boolean);
+  for (const item of rawPhrases) {
+    const clean = String(item).toLowerCase().trim();
+    if (clean) tokens.add(clean);
+    const words = clean.split(/[^a-z0-9+#]+/);
+    for (const w of words) {
+      if (w.length >= 2 && !STOP_WORDS.has(w)) {
+        tokens.add(w);
       }
     }
   }
-  const hit = [...A].filter(x => B.has(x));
-  const score = A.size ? (hit.length + partial) / A.size : 0;
-  return { hit, score: Math.min(1, score) };
+  return { tokens, phrases: rawPhrases };
+}
+
+function matchCategories(listA = [], listB = []) {
+  const A = extractTokens(listA);
+  const B = extractTokens(listB);
+
+  const sharedPhrases = [];
+  const sharedTokens = new Set();
+
+  for (const pa of A.phrases) {
+    const la = pa.toLowerCase();
+    for (const pb of B.phrases) {
+      const lb = pb.toLowerCase();
+      if (la === lb || (la.length > 4 && lb.length > 4 && (la.includes(lb) || lb.includes(la)))) {
+        sharedPhrases.push(la.length < lb.length ? pa : pb);
+      }
+    }
+  }
+
+  for (const t of A.tokens) {
+    if (B.tokens.has(t)) {
+      sharedTokens.add(t);
+    }
+  }
+
+  const uniqueShared = Array.from(new Set([...sharedPhrases, ...sharedTokens]));
+  const baseSize = Math.max(1, Math.min(A.tokens.size, B.tokens.size));
+  const rawRatio = sharedTokens.size / baseSize;
+  const rawScore = Math.min(100, Math.round(rawRatio * 100));
+
+  return {
+    rawScore,
+    hit: uniqueShared.slice(0, 5)
+  };
 }
 
 export function compatibility(a, b) {
-  const i = partialMatch(a.profile.interests, b.profile.interests);
-  const h = partialMatch(a.profile.hobbies, b.profile.hobbies);
-  const w = partialMatch(a.profile.work_style, b.profile.work_style);
-  const s = partialMatch(a.profile.social_style, b.profile.social_style);
-  const q = partialMatch(a.profile.qualities, b.profile.qualities);
-  const n = partialMatch(a.profile.needs, b.profile.needs);
+  const i = matchCategories(a.profile?.interests, b.profile?.interests);
+  const h = matchCategories(a.profile?.hobbies, b.profile?.hobbies);
+  const w = matchCategories(a.profile?.work_style, b.profile?.work_style);
+  const s = matchCategories(a.profile?.social_style, b.profile?.social_style);
+  const q = matchCategories(a.profile?.qualities, b.profile?.qualities);
+  const n = matchCategories(a.profile?.needs, b.profile?.needs);
 
-  // Weighted scoring: interests 35, hobbies 20, needs 15, work_style 12, social_style 10, qualities 8
-  const raw = i.score * 35 + h.score * 20 + n.score * 15 + w.score * 12 + s.score * 10 + q.score * 8;
-  const score = Math.round(Math.min(100, Math.max(0, raw)) * 10) / 10;
+  // Normalized dimensional scores (0-100)
+  const scoreInterests = Math.min(100, Math.round(i.rawScore * 3.0 + (i.hit.length > 0 ? 35 : 10)));
+  const scoreHobbies = Math.min(100, Math.round(h.rawScore * 3.0 + (h.hit.length > 0 ? 30 : 10)));
+  const scoreNeeds = Math.min(100, Math.round(n.rawScore * 2.5 + (n.hit.length > 0 ? 30 : 10)));
+  const scoreWork = Math.min(100, Math.round(w.rawScore * 2.5 + (w.hit.length > 0 ? 30 : 15)));
+  const scoreSocial = Math.min(100, Math.round(s.rawScore * 2.5 + (s.hit.length > 0 ? 25 : 15)));
 
-  // Build reasons
-  const reasons = [
-    ...i.hit.slice(0, 3).map(x => `shared interest: ${x}`),
-    ...h.hit.slice(0, 2).map(x => `shared hobby: ${x}`),
-    ...n.hit.slice(0, 2).map(x => `shared need: ${x}`),
-    ...w.hit.slice(0, 2).map(x => `work-style fit: ${x}`),
-  ].slice(0, 6);
+  // Weighted overall compatibility score
+  const totalRaw = (scoreInterests * 0.35) + (scoreHobbies * 0.20) + (scoreNeeds * 0.15) + (scoreWork * 0.15) + (scoreSocial * 0.15);
+  const score = Math.round(Math.min(98, Math.max(15, totalRaw)) * 10) / 10;
 
-  // Breakdown for detailed view
+  // Specific positive reasons
+  const positiveReasons = [
+    ...i.hit.slice(0, 3).map(x => `Shared interest: ${x}`),
+    ...h.hit.slice(0, 2).map(x => `Shared hobby: ${x}`),
+    ...n.hit.slice(0, 2).map(x => `Aligned need: ${x}`),
+    ...w.hit.slice(0, 2).map(x => `Work style: ${x}`),
+  ];
+
   const breakdown = {
-    interests: { score: Math.round(i.score * 100), shared: i.hit.slice(0, 4) },
-    hobbies: { score: Math.round(h.score * 100), shared: h.hit.slice(0, 3) },
-    needs: { score: Math.round(n.score * 100), shared: n.hit.slice(0, 3) },
-    work_style: { score: Math.round(w.score * 100), shared: w.hit.slice(0, 3) },
-    social_style: { score: Math.round(s.score * 100), shared: s.hit.slice(0, 3) },
+    interests: { score: scoreInterests, shared: i.hit },
+    hobbies: { score: scoreHobbies, shared: h.hit },
+    needs: { score: scoreNeeds, shared: n.hit },
+    work_style: { score: scoreWork, shared: w.hit },
+    social_style: { score: scoreSocial, shared: s.hit },
   };
 
-  return { score, reasons, breakdown };
+  return { score, reasons: positiveReasons, breakdown };
 }
 
 export function rankPeople(people) {
-  return Object.fromEntries(people.map(p => [
-    p.id,
-    people
+  return Object.fromEntries(people.map(p => {
+    const list = people
       .filter(x => x.id !== p.id)
-      .map(x => ({ id: x.id, name: x.name, ...compatibility(p, x) }))
-      .sort((a, b) => b.score - a.score)
-  ]));
+      .map(x => ({ id: x.id, name: x.name, ...compatibility(p, x), personB: x }))
+      .sort((a, b) => b.score - a.score);
+
+    const total = list.length;
+    return [
+      p.id,
+      list.map((item, idx) => {
+        const rank = idx + 1;
+        let explanation = '';
+        const sharedTopics = item.reasons.length ? item.reasons.join(', ') : 'no direct public overlap';
+        const aTopInterest = p.profile?.interests?.[0] || 'tech leadership';
+        const bTopInterest = item.personB?.profile?.interests?.[0] || 'entrepreneurship';
+
+        if (rank === 1) {
+          explanation = `Top match (#1/${total}) with ${item.score}% fit. Highest resonance: ${sharedTopics}. Both agents prioritize complementary pace and focus.`;
+        } else if (rank <= 3) {
+          explanation = `High tier match (#${rank}/${total}) with ${item.score}% fit. Notable synergy in ${sharedTopics}.`;
+        } else if (rank >= total - 1) {
+          explanation = `Lowest fit (#${rank}/${total}) with ${item.score}% fit. Divergent focus (${aTopInterest} vs ${bTopInterest}) and minimal shared hobbies or needs from public sources.`;
+        } else {
+          explanation = `Moderate fit (#${rank}/${total}) with ${item.score}% fit. ${item.reasons.length ? `Aligns partially on ${sharedTopics}.` : `Limited common ground in public profiles.`}`;
+        }
+
+        // Clean up internal helper
+        const { personB, ...cleanItem } = item;
+        return {
+          ...cleanItem,
+          rank,
+          explanation,
+        };
+      })
+    ];
+  }));
 }

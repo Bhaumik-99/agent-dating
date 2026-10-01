@@ -34,7 +34,7 @@ app.get('/api/demo', async (req, res) => {
     }
     // Always recompute rankings from stored profiles
     const rankings = rankPeople(DEMO.people);
-    res.json({ people: DEMO.people, rankings });
+    res.json({ people: DEMO.people, rankings, sampleDates: DEMO.sampleDates || {} });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

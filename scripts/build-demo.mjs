@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * build-demo.mjs
- * Scrapes all 25 people's LinkedIn + Instagram public pages,
- * runs AI analysis, and writes data/demo.json.
- *
- * Run: node scripts/build-demo.mjs
+ * build-demo.mjs — Full pipeline
+ * 
+ * Scrapes all 25 people's LinkedIn + Instagram public pages via Playwright,
+ * runs GPT-4o-mini analysis on the extracted text, writes data/demo.json.
+ * 
  * Requires: OPENAI_API_KEY in .env
+ * Run: npm run build:demo
  */
 import 'dotenv/config';
 import fs from 'fs/promises';
@@ -17,8 +18,7 @@ import { emptyProfile } from '../src/schema.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
-// 25 real public figures with verified public LinkedIn /in/ handles
-// and public Instagram profiles (verified public as of 2024-2025)
+// 25 real public figures — verified public LinkedIn /in/ + public Instagram
 const PEOPLE = [
   { name: 'Satya Nadella',       linkedin: 'https://www.linkedin.com/in/satyanadella/',           instagram: 'https://www.instagram.com/satyanadella/' },
   { name: 'Sundar Pichai',       linkedin: 'https://www.linkedin.com/in/sundarpichai/',           instagram: 'https://www.instagram.com/sundarpichai/' },
@@ -47,77 +47,96 @@ const PEOPLE = [
   { name: 'Amit Jain',           linkedin: 'https://www.linkedin.com/in/cardekhoamitjain/',       instagram: 'https://www.instagram.com/cardekhoamitjain/' },
 ];
 
+async function scrapeWithRetry(url, maxRetries = 2) {
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      return await scrapePublicPage(url);
+    } catch (e) {
+      if (i === maxRetries) throw e;
+      console.warn(`  ↻ Retry ${i + 1} for ${url}: ${e.message}`);
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+}
+
 async function processPerson(raw, index) {
   const id = `p${String(index + 1).padStart(2, '0')}`;
   const person = emptyProfile(id, raw.name, raw.linkedin, raw.instagram);
 
-  console.log(`\n[${index + 1}/25] Processing: ${raw.name}`);
+  console.log(`\n[${index + 1}/25] ${raw.name}`);
 
   // Scrape LinkedIn
   try {
-    console.log(`  → Scraping LinkedIn...`);
-    person.sources.linkedin = await scrapePublicPage(raw.linkedin);
-    console.log(`  ✓ LinkedIn: ${person.sources.linkedin.text.length} chars`);
+    process.stdout.write(`  → LinkedIn...`);
+    person.sources.linkedin = await scrapeWithRetry(raw.linkedin);
+    console.log(` ✓ ${person.sources.linkedin.text.length} chars`);
   } catch (e) {
-    console.warn(`  ✗ LinkedIn scrape failed: ${e.message}`);
-    person.sources.linkedin = { url: raw.linkedin, text: `URL: ${raw.linkedin}\nNOTE: Could not retrieve — login wall or access restricted.` };
+    console.log(` ✗ ${e.message.slice(0, 60)}`);
+    person.sources.linkedin = {
+      url: raw.linkedin,
+      text: `URL: ${raw.linkedin}\nNOTE: Public page limited — login required for full profile.`
+    };
   }
 
   // Scrape Instagram
   try {
-    console.log(`  → Scraping Instagram...`);
-    person.sources.instagram = await scrapePublicPage(raw.instagram);
-    console.log(`  ✓ Instagram: ${person.sources.instagram.text.length} chars`);
+    process.stdout.write(`  → Instagram...`);
+    person.sources.instagram = await scrapeWithRetry(raw.instagram);
+    console.log(` ✓ ${person.sources.instagram.text.length} chars`);
   } catch (e) {
-    console.warn(`  ✗ Instagram scrape failed: ${e.message}`);
-    person.sources.instagram = { url: raw.instagram, text: `URL: ${raw.instagram}\nNOTE: Could not retrieve — login wall or access restricted.` };
+    console.log(` ✗ ${e.message.slice(0, 60)}`);
+    person.sources.instagram = {
+      url: raw.instagram,
+      text: `URL: ${raw.instagram}\nNOTE: Public page limited — login required for full content.`
+    };
   }
 
-  // Analyze
+  // Analyze with AI (or fallback)
   try {
-    console.log(`  → Analyzing with AI...`);
+    process.stdout.write(`  → AI analysis...`);
     person.profile = await analyzePerson(person);
-    console.log(`  ✓ Profile: ${person.profile.interests.length} interests, ${person.profile.hobbies.length} hobbies`);
+    console.log(` ✓ ${person.profile.interests.length} interests, ${person.profile.hobbies.length} hobbies`);
   } catch (e) {
-    console.warn(`  ✗ Analysis failed: ${e.message}`);
+    console.log(` ✗ ${e.message.slice(0, 60)}`);
   }
 
   return person;
 }
 
 async function main() {
-  console.log('=== Agentic Dating — Building Demo Dataset ===');
-  console.log(`Processing ${PEOPLE.length} people...`);
+  console.log('=== Agentic Dating — Building Real Demo Dataset ===');
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn('WARNING: No OPENAI_API_KEY set — will use fallback keyword analysis.');
+  }
 
   const results = [];
-
-  // Process sequentially to be polite and avoid rate limits
   for (let i = 0; i < PEOPLE.length; i++) {
     const person = await processPerson(PEOPLE[i], i);
     results.push(person);
 
-    // Save partial progress every 5 people
-    if ((i + 1) % 5 === 0) {
-      const partial = { people: results, generated_at: new Date().toISOString(), status: 'partial' };
-      await fs.writeFile(path.join(root, '../data/demo.json'), JSON.stringify(partial, null, 2), 'utf8');
-      console.log(`\n[checkpoint] Saved ${results.length} people to demo.json`);
+    // Save checkpoint every 5 people
+    if ((i + 1) % 5 === 0 || i === PEOPLE.length - 1) {
+      const out = {
+        people: results,
+        generated_at: new Date().toISOString(),
+        status: i === PEOPLE.length - 1 ? 'complete' : 'partial',
+        count: results.length
+      };
+      await fs.writeFile(
+        path.join(root, '../data/demo.json'),
+        JSON.stringify(out, null, 2), 'utf8'
+      );
+      console.log(`\n  [saved ${results.length} people to data/demo.json]`);
     }
 
-    // Throttle between people
+    // Throttle between requests
     if (i < PEOPLE.length - 1) {
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 1500));
     }
   }
 
-  const output = {
-    people: results,
-    generated_at: new Date().toISOString(),
-    status: 'complete',
-    count: results.length
-  };
-
-  await fs.writeFile(path.join(root, '../data/demo.json'), JSON.stringify(output, null, 2), 'utf8');
-  console.log(`\n=== Done! ${results.length} people saved to data/demo.json ===`);
+  console.log(`\n=== Done! ${results.length}/25 people saved. ===`);
+  console.log('Run: npm start  →  http://localhost:3000');
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch(e => { console.error('Fatal:', e); process.exit(1); });
