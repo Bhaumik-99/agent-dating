@@ -1,3 +1,34 @@
+/**
+ * match.js
+ * Multi-factor Compatibility & Ranking Engine.
+ * 
+ * Architecture:
+ * LinkedIn + Instagram 
+ *       ↓
+ * Profile extraction 
+ *       ↓ 
+ * Agent representation 
+ *       ↓ 
+ * Agent-to-agent date 
+ *       ↓ 
+ * Date evaluation 
+ *       ↓ 
+ * Compatibility 
+ *       ↓ 
+ * Ranking
+ * 
+ * Combines:
+ * - Interests (25%)
+ * - Hobbies (15%)
+ * - Needs (15%)
+ * - Work & Lifestyle (15%)
+ * - Social & Conversation Style (10%)
+ * - Date Proposal Compatibility (5%)
+ * - Simulated Date Outcome (15%)
+ */
+
+import { simulateAgentDate } from './agent.js';
+
 const STOP_WORDS = new Set([
   'and','the','to','of','in','a','an','for','with','on','at','from','by','about',
   'as','into','through','over','after','how','what','why','gets','done','based',
@@ -55,72 +86,77 @@ function matchCategories(listA = [], listB = []) {
   };
 }
 
-export function compatibility(a, b) {
-  const i = matchCategories(a.profile?.interests, b.profile?.interests);
-  const h = matchCategories(a.profile?.hobbies, b.profile?.hobbies);
-  const w = matchCategories(a.profile?.work_style, b.profile?.work_style);
-  const s = matchCategories(a.profile?.social_style, b.profile?.social_style);
-  const q = matchCategories(a.profile?.qualities, b.profile?.qualities);
-  const n = matchCategories(a.profile?.needs, b.profile?.needs);
+/**
+ * Computes multi-dimensional compatibility incorporating the simulated agent date.
+ */
+export function compatibility(personA, personB, existingDate = null) {
+  const i = matchCategories(personA.profile?.interests, personB.profile?.interests);
+  const h = matchCategories(personA.profile?.hobbies, personB.profile?.hobbies);
+  const w = matchCategories(personA.profile?.work_style, personB.profile?.work_style);
+  const s = matchCategories(personA.profile?.social_style, personB.profile?.social_style);
+  const n = matchCategories(personA.profile?.needs, personB.profile?.needs);
 
-  // Normalized dimensional scores (0-100)
-  const scoreInterests = Math.min(100, Math.round(i.rawScore * 3.0 + (i.hit.length > 0 ? 35 : 10)));
-  const scoreHobbies = Math.min(100, Math.round(h.rawScore * 3.0 + (h.hit.length > 0 ? 30 : 10)));
+  // 1. Dimensional scores (0-100)
+  const scoreInterests = Math.min(100, Math.round(i.rawScore * 2.8 + (i.hit.length > 0 ? 35 : 10)));
+  const scoreHobbies = Math.min(100, Math.round(h.rawScore * 2.8 + (h.hit.length > 0 ? 30 : 10)));
   const scoreNeeds = Math.min(100, Math.round(n.rawScore * 2.5 + (n.hit.length > 0 ? 30 : 10)));
   const scoreWork = Math.min(100, Math.round(w.rawScore * 2.5 + (w.hit.length > 0 ? 30 : 15)));
   const scoreSocial = Math.min(100, Math.round(s.rawScore * 2.5 + (s.hit.length > 0 ? 25 : 15)));
 
-  // Weighted overall compatibility score
-  const totalRaw = (scoreInterests * 0.35) + (scoreHobbies * 0.20) + (scoreNeeds * 0.15) + (scoreWork * 0.15) + (scoreSocial * 0.15);
-  const score = Math.round(Math.min(98, Math.max(15, totalRaw)) * 10) / 10;
+  // 2. Simulated agent date execution or lookup
+  const date = existingDate || simulateAgentDate(personA, personB);
 
-  // Specific positive reasons
-  const positiveReasons = [
-    ...i.hit.slice(0, 3).map(x => `Shared interest: ${x}`),
-    ...h.hit.slice(0, 2).map(x => `Shared hobby: ${x}`),
-    ...n.hit.slice(0, 2).map(x => `Aligned need: ${x}`),
-    ...w.hit.slice(0, 2).map(x => `Work style: ${x}`),
+  // 3. Date proposal & outcome evaluations
+  const proposalScore = Math.min(100, 60 + (i.hit.length > 0 ? 20 : 0) + (h.hit.length > 0 ? 20 : 0));
+  const dateChemistry = date.chemistry_score || 50;
+  const decisionA = date.decision_a?.continue ?? true;
+  const decisionB = date.decision_b?.continue ?? true;
+  const mutualContinue = decisionA && decisionB;
+  const decisionBonus = mutualContinue ? 8 : (decisionA || decisionB ? -4 : -12);
+
+  // 4. Weighted transparent score calculation:
+  // Interests 25%, Hobbies 15%, Needs 15%, Work/Lifestyle 15%, Social 10%, Proposal 5%, Date Outcome 15%
+  const weighted = 
+    (scoreInterests * 0.25) +
+    (scoreHobbies * 0.15) +
+    (scoreNeeds * 0.15) +
+    (scoreWork * 0.15) +
+    (scoreSocial * 0.10) +
+    (proposalScore * 0.05) +
+    (dateChemistry * 0.15);
+
+  const finalScore = Math.round(Math.min(99, Math.max(15, weighted + decisionBonus)) * 10) / 10;
+
+  // 5. Reasons compilation
+  const reasons = [
+    ...i.hit.slice(0, 2).map(x => `Shared interest: ${x}`),
+    ...h.hit.slice(0, 1).map(x => `Shared hobby: ${x}`),
+    ...n.hit.slice(0, 1).map(x => `Aligned need: ${x}`),
+    ...w.hit.slice(0, 1).map(x => `Work style: ${x}`),
+    `Date outcome: ${dateChemistry}/100 chemistry (${mutualContinue ? 'Mutual 2nd date' : 'Single/mixed decision'})`
   ];
 
   const breakdown = {
     interests: { score: scoreInterests, shared: i.hit },
     hobbies: { score: scoreHobbies, shared: h.hit },
     needs: { score: scoreNeeds, shared: n.hit },
-    work_style: { score: scoreWork, shared: w.hit },
+    work_lifestyle: { score: scoreWork, shared: w.hit },
     social_style: { score: scoreSocial, shared: s.hit },
+    date_proposal: { score: proposalScore, venue: date.venue, activity: date.activity },
+    date_outcome: { score: dateChemistry, chemistry: dateChemistry, decision_a: date.decision_a, decision_b: date.decision_b }
   };
 
-  return { score, reasons: positiveReasons, breakdown };
+  return {
+    score: finalScore,
+    reasons,
+    breakdown,
+    date
+  };
 }
 
-// Filter top candidate pairs for the dating round
-export function filterCandidatePairs(people, topK = 6) {
-  const pairSet = new Set();
-  const pairs = [];
-
-  for (const p of people) {
-    const scored = people
-      .filter(x => x.id !== p.id)
-      .map(x => ({ target: x, comp: compatibility(p, x) }))
-      .sort((a, b) => b.comp.score - a.comp.score)
-      .slice(0, topK);
-
-    for (const item of scored) {
-      const idA = p.id < item.target.id ? p.id : item.target.id;
-      const idB = p.id < item.target.id ? item.target.id : p.id;
-      const key = `${idA}_${idB}`;
-      if (!pairSet.has(key)) {
-        pairSet.add(key);
-        const personA = people.find(x => x.id === idA);
-        const personB = people.find(x => x.id === idB);
-        pairs.push([personA, personB]);
-      }
-    }
-  }
-
-  return pairs;
-}
-
+/**
+ * Computes rankings for every person incorporating simulated dates.
+ */
 export function rankPeople(people, datesMap = {}) {
   return Object.fromEntries(people.map(p => {
     const list = people
@@ -128,38 +164,16 @@ export function rankPeople(people, datesMap = {}) {
       .map(x => {
         const key = `${p.id}_${x.id}`;
         const revKey = `${x.id}_${p.id}`;
-        const date = datesMap[key] || datesMap[revKey] || null;
-        const profileComp = compatibility(p, x);
-
-        let finalScore = profileComp.score;
-        let dated = false;
-        let mutualContinue = false;
-
-        if (date && typeof date.chemistry_score === 'number') {
-          dated = true;
-          const chem = date.chemistry_score;
-          const aCont = date.decision_a?.continue ?? true;
-          const bCont = date.decision_b?.continue ?? true;
-          mutualContinue = aCont && bCont;
-
-          // Date evaluation directly influences final compatibility:
-          // 40% profile baseline + 45% date chemistry + mutual decision bonus/penalty
-          const bonus = (aCont && bCont) ? 12 : (aCont || bCont ? -6 : -18);
-          finalScore = Math.round(Math.min(99, Math.max(15, (profileComp.score * 0.40) + (chem * 0.45) + bonus)) * 10) / 10;
-        } else {
-          // Pairs that didn't qualify for the candidate dating round receive a lower baseline ceiling
-          finalScore = Math.round(Math.min(52, profileComp.score * 0.70) * 10) / 10;
-        }
+        const date = datesMap[key] || datesMap[revKey] || simulateAgentDate(p, x);
+        const comp = compatibility(p, x, date);
 
         return {
           id: x.id,
           name: x.name,
-          score: finalScore,
-          profileScore: profileComp.score,
-          dated,
+          score: comp.score,
+          reasons: comp.reasons,
+          breakdown: comp.breakdown,
           date,
-          reasons: profileComp.reasons,
-          breakdown: profileComp.breakdown,
           personB: x
         };
       })
@@ -170,30 +184,25 @@ export function rankPeople(people, datesMap = {}) {
       p.id,
       list.map((item, idx) => {
         const rank = idx + 1;
-        let explanation = '';
         const d = item.date;
+        let explanation = '';
 
-        if (item.dated && d) {
-          const aReason = d.decision_a?.reason || 'Aligned conversational pace';
-          const bReason = d.decision_b?.reason || 'Shared professional vision';
-          if (d.decision_a?.continue && d.decision_b?.continue) {
-            if (rank === 1) {
-              explanation = `Top Match (#1/${total}) · ${item.score}% fit. Outstanding date chemistry (${d.chemistry_score}/100) at ${d.venue}. Both agents mutually decided to continue. ${p.name}: "${aReason}". ${item.name}: "${bReason}".`;
-            } else {
-              explanation = `Ranked #${rank}/${total} · ${item.score}% fit. High date chemistry (${d.chemistry_score}/100) discussing ${d.shared_interest || 'shared interests'}. Both agents agreed on a 2nd date.`;
-            }
+        const aReason = d.decision_a?.reason || 'Aligned conversational pace';
+        const bReason = d.decision_b?.reason || 'Shared professional vision';
+
+        if (d.decision_a?.continue && d.decision_b?.continue) {
+          if (rank === 1) {
+            explanation = `Top Match (#1/${total}) · ${item.score}% fit. Outstanding date chemistry (${d.chemistry_score}/100) at ${d.venue}. Both agents mutually decided to continue. ${p.name}: "${aReason}". ${item.name}: "${bReason}".`;
           } else {
-            const declinedBy = !d.decision_a?.continue ? p.name : item.name;
-            const decReason = !d.decision_a?.continue ? aReason : bReason;
-            explanation = `Ranked #${rank}/${total} · ${item.score}% fit. Dated at ${d.venue} (${d.chemistry_score}/100 chemistry), but did not advance: ${declinedBy} declined ("${decReason}").`;
+            explanation = `Ranked #${rank}/${total} · ${item.score}% fit. High date chemistry (${d.chemistry_score}/100) discussing ${d.shared_interest || 'shared interests'}. Both agents agreed on a 2nd date.`;
           }
         } else {
-          const aTop = p.profile?.interests?.[0] || 'core domain';
-          const bTop = item.personB?.profile?.interests?.[0] || 'primary domain';
+          const declinedBy = !d.decision_a?.continue ? p.name : item.name;
+          const decReason = !d.decision_a?.continue ? aReason : bReason;
           if (rank >= total - 2) {
-            explanation = `Lowest Fit (#${rank}/${total}) · ${item.score}%. Filtered out before the dating round due to divergent focus (${aTop} vs ${bTop}) and minimal public overlap.`;
+            explanation = `Lowest Fit (#${rank}/${total}) · ${item.score}%. Date at ${d.venue} revealed divergent operating priorities (${item.personB.profile?.interests?.[0] || 'domain'}). ${declinedBy} declined: "${decReason}".`;
           } else {
-            explanation = `Ranked #${rank}/${total} · ${item.score}%. Moderate baseline profile resonance (${item.profileScore}%), but did not qualify for the candidate dating round.`;
+            explanation = `Ranked #${rank}/${total} · ${item.score}% fit. Dated at ${d.venue} (${d.chemistry_score}/100 chemistry), but did not advance: ${declinedBy} declined ("${decReason}").`;
           }
         }
 

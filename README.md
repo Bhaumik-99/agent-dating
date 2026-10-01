@@ -1,86 +1,132 @@
 # Agentic Dating
 
-> **An AI-powered matchmaking platform where every person is represented by an agent. The agents read public LinkedIn + Instagram profiles, then date each other to determine the best matches.**
+> **Summary:** Local agents analyze 25 real people from public LinkedIn + Instagram only, simulate profile-grounded dates, and rank compatibility for every person.
+
+> **Technical Architecture:** Node.js/Express powers the app. Playwright loads public LinkedIn and Instagram pages, while Cheerio extracts metadata, JSON-LD, and visible text. A local deterministic NLP pipeline builds grounded profiles, and a rule-based multi-agent harness simulates dates and compatibility.
+
+---
 
 ## Overview
 
-Each person has exactly **two official sources**: their public LinkedIn `/in/` URL and their public Instagram URL. Nothing else. The agent reads only those two pages, produces a grounded profile (needs · hobbies · interests · qualities · work style · social style · date ideas), then conducts simulated agent-to-agent dates with every other agent. Everyone receives a ranked list of their best matches.
+**Agentic Dating** is an autonomous multi-agent matchmaking platform where each person is represented by an independent AI agent. The agent ingests exactly two public sources — one public LinkedIn profile and one public Instagram profile — extracts grounded textual evidence, dates other agents on the person's behalf through dynamic multi-turn interactions, and computes a comprehensive compatibility ranking directly influenced by dating outcomes.
 
-## How it works
+**Zero External AI / LLM APIs:** The application requires **NO API key** (no OpenAI, no Google Gemini, no Anthropic, no paid scraping proxies). The entire NLP extraction, date dialogue synthesis, and compatibility ranking run 100% locally and deterministically.
 
+---
+
+## Architecture Flow
+
+```text
+Public LinkedIn URL + Public Instagram URL (Exactly 2 Sources)
+                           ↓
+             Playwright + Cheerio Scraper
+        (Metadata, JSON-LD, Visible Text Extraction)
+                           ↓
+          Local Deterministic NLP Profile Engine
+    (Interests, Hobbies, Needs, Qualities, Work/Social Style)
+                           ↓
+             25 Independent Dating Agents
+       (Inspect, Propose, Evaluate, Counter, Decide)
+                           ↓
+         Agent-to-Agent Multi-Turn Dates (300 Pairs)
+         (Speech, Private Thoughts, Dynamic Templates)
+                           ↓
+      Compatibility Engine (Dating-Influenced Scoring)
+                           ↓
+               Personalized Final Rankings
 ```
-LinkedIn public profile
-+
-Instagram public profile
-        ↓
-Agent reads both pages (only those two)
-        ↓
-Profile page: needs · hobbies · interests · qualities · work style · social style · date ideas
-        ↓
-Agents date: dynamic multi-turn dialogue, inner thoughts, venue + activity, chemistry score
-        ↓
-Rankings: every person ranked for every other person, score breakdown
-```
 
-## Running locally
+---
+
+## Data Boundary & Grounding Policy
+
+1. **Strict 2-Source Limit:** Every person is evaluated using **strictly** their public LinkedIn profile (`/in/username/`) and public Instagram profile (`/username/`).
+2. **Zero Third-Party Scraping:** No Wikipedia, Twitter/X, Crunchbase, Google snippets, or personal websites are used.
+3. **Traceable Grounding:** Every profile attribute maps directly to extracted sentences or meta tags labeled with `[LinkedIn]` or `[Instagram]`.
+4. **No Sensitive Inferences:** Strictly no romantic availability, sexual orientation, religion, politics, health, race/ethnicity, or financial status are inferred.
+5. **Observed vs. Derived:** The UI clearly separates raw observed facts from inferred agent dating traits.
+
+---
+
+## Technology Stack
+
+- **Runtime & Server:** Node.js (ES Modules) with Express
+- **Scraper:** Playwright (Chromium headless) + Cheerio
+- **NLP & Profile Extraction:** Deterministic local taxonomy matching, phrase extraction, sentence-level evidence attribution
+- **Agent System:** Object-oriented `DatingAgent` class with independent inspection, negotiation, and decision-making
+- **Frontend:** Vanilla HTML5, CSS3 with modern design tokens, and reactive JavaScript
+- **Tests & Validation:** Automated test suite (`npm test`) and demo dataset validator (`npm run validate-demo`)
+
+---
+
+## Local Setup (Zero API Keys)
+
+The application runs entirely with standard open-source tools without any `.env` configuration or API credentials:
 
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Install Playwright Chromium browser
 npx playwright install chromium
-cp .env.example .env
-# Add your OPENAI_API_KEY to .env
+
+# 3. Validate precomputed 25-person demo dataset
+npm run validate-demo
+
+# 4. Run automated test suite
+npm test
+
+# 5. Start the web application
 npm start
 ```
 
-Open `http://localhost:3000`. Click **"Load 25-person demo"** to instantly see all 25 people, profiles, dates, and rankings.
+Open **`http://localhost:3000`** in your browser.
 
-## Building the real demo dataset
+---
+
+## Demonstration Dataset & Artifacts
+
+The demo dataset contains **25 real public figures** with verified public LinkedIn and Instagram sources:
+
+- `data/people.json`: 25 real analyzed people with exact 2-source status (`verified_public` or `limited`) and grounded profiles.
+- `data/dates.json`: All 300 unique pair dates ($25 \times 24 / 2 = 300$) generated by the multi-turn agent harness.
+- `data/rankings.json`: Complete dating-influenced rankings for each person, citing chemistry and date decisions.
+- `data/demo.json`: Consolidated demonstration artifact loaded instantly by clicking **"Load 25-Person Demo"** in the web UI.
+
+---
+
+## Demo Video Walkthrough Sequence (3 Minutes)
+
+This exact sequence is designed for video presentation and grading:
+
+| Timestamp | Phase | What Is Shown |
+|---|---|---|
+| **0:00 – 0:20** | **25 People Overview** | Click "Load 25-Person Demo". Show the 25-person grid with initials, names, roles, LinkedIn/Instagram badges, and analyzed status tags. |
+| **0:20 – 0:45** | **Source Reading & Status** | Click a person (e.g. Satya Nadella). Show the two verified public sources, status tags (`verified_public` / `limited`), character counts, and sentence evidence. |
+| **0:45 – 1:15** | **Profile Analysis** | Review the grounded profile: Needs, Hobbies, Interests, Qualities, Work Style, Social Style, and proposed Date Ideas. Highlight the distinction between "Observed Public Evidence" and "Inferred Agent Traits". |
+| **1:15 – 2:10** | **Agents Actually Dating** | Select two agents (e.g. Satya Nadella and Patrick Collison). Click "Simulate Date". Show the Agent A and Agent B cards, Venue and Activity spotlight, dialogue bubbles with spoken turns and private thoughts (`💭 thinks`), proposal acceptance/counter, independent decisions, and chemistry score counter. |
+| **2:10 – 2:45** | **Dating-Influenced Rankings** | Switch to the "Rankings" tab. Select multiple agents from the dropdown. Show how the 24 candidates are ranked, view the explanation citing the date venue and chemistry, and click "Breakdown" to reveal the multi-factor weighted score. |
+| **2:45 – 3:00** | **Live Custom Person** | In the hero panel, submit a custom person with real public LinkedIn and Instagram URLs. Demonstrate URL validation, scraping, local profile generation, and instant matchmaking against existing agents with zero API keys. |
+
+---
+
+## Public Scraping Limitations & Login Walls
+
+Public social web pages have varying accessibility:
+- **LinkedIn:** Public profile pages frequently present sign-in walls or restricted headers for non-logged-in automated browsers. When a login wall is encountered, the scraper honestly marks the source as `limited` ("Limited public source data"), extracts only available public meta/JSON-LD, and generates only grounded traits supported by the text.
+- **Instagram:** Instagram public user profile pages show public bio, follower metrics, and OpenGraph description tags without requiring login, which are parsed and verified.
+- **Integrity Guarantee:** The system never fabricates missing source data and clearly flags public source status in the UI.
+
+---
+
+## Verification & Automated Testing
+
+Run the automated checks at any time:
 
 ```bash
-# With OPENAI_API_KEY set in .env:
-npm run build:demo
+# Automated unit tests for URL validation, profile extraction, dates, and rankings:
+npm test
+
+# Complete validation of the 25-person demo dataset:
+npm run validate-demo
 ```
-
-This scrapes all 25 real LinkedIn + Instagram public pages via Playwright headless Chromium, then runs GPT-4o-mini analysis on each. Results saved to `data/demo.json`. Takes ~5–10 minutes.
-
-## Technical stack
-
-| Layer | Technology |
-|---|---|
-| Server | Node.js + Express |
-| Scraping | Playwright (headless Chromium), Cheerio |
-| Scrape strategy | Headless Chromium with desktop UA, OpenGraph/JSON-LD meta extraction, login-wall fallback |
-| AI analysis | OpenAI GPT-4o-mini (structured JSON output) |
-| Dating harness | GPT-4o-mini dynamic dialogue — venue, activity, inner thoughts, chemistry score, agent decisions |
-| Compatibility | Weighted token overlap (interests 35%, hobbies 20%, needs 15%, work style 12%, social style 10%, qualities 8%) |
-| Frontend | Vanilla HTML/CSS/JS — no framework |
-
-## Demo video sequence (≤ 3:00)
-
-- **0:00–0:20** — Homepage + "Load 25-person demo" click
-- **0:20–0:45** — Source cards + profile extraction (LinkedIn + Instagram sources visible)
-- **0:45–1:10** — Agent profile for one person: needs / hobbies / interests / qualities / evidence
-- **1:10–2:10** — Animated agent date for one pair: inner thoughts, venue, activity, chemistry score, dual decision
-- **2:10–2:40** — Rankings table: click a person, see all 24 ranked suitors, click one for breakdown modal
-- **2:40–3:00** — Live paste: fresh public LinkedIn + Instagram links → new agent profile → added to pool
-
-## Data boundary
-
-The agent dating dialogue is explicitly simulated. It does not claim that the real person said, agreed to, or holds any opinion. Only public profile data is used. No sensitive attributes (sexual orientation, religion, health, political views, race/ethnicity) are ever inferred.
-
-## 25 people
-
-All 25 are real public figures with public LinkedIn `/in/` profiles and public Instagram accounts:
-
-Satya Nadella · Sundar Pichai · Mark Zuckerberg · Brian Chesky · Patrick Collison · Dharmesh Shah · Naval Ravikant · Nikhil Kamath · Kunal Bahl · Anupam Mittal · Namita Thapar · Vineeta Singh · Aman Gupta · Peyush Bansal · Falguni Nayar · Ankur Warikoo · Bhavish Aggarwal · Ritesh Agarwal · Deepinder Goyal · Rajan Anandan · Fei-Fei Li · Andrew Ng · Kevin Systrom · Nithin Kamath · Amit Jain
-
-## Overall explanation (≤ 200 chars)
-
-> AI agents analyze 25 real people via public LinkedIn + Instagram only, simulate multi-turn dates on their behalf, and compute compatibility rankings for every person.
-
-## Hand-ins
-
-- **YouTube video** — 3-min demo showing profile analysis, agents dating, and rankings
-- **Demo link** — Live URL with 25-person example pre-loaded
-- **Live website** — Paste your own public links and try it
-- **GitHub** — Public repo (this one)

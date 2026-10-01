@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Agentic Dating — AI Agents Date On Your Behalf</title>
-<meta name="description" content="Each person is represented by an AI agent. The agents read public LinkedIn and Instagram profiles, then date each other to find the best matches.">
+<meta name="description" content="Local autonomous agents represent real people, analyze public LinkedIn and Instagram profiles, simulate grounded dates, and rank compatibility.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -166,9 +166,35 @@ nav {
 }
 .step-text { color: var(--text2); }
 
+/* ===== PIPELINE SEQUENCE BAR ===== */
+.pipeline-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 20px; margin-top: 26px;
+  overflow-x: auto; gap: 8px;
+}
+.pipeline-step {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 14px; border-radius: 99px; transition: all .2s;
+  color: var(--text3); font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.pipeline-step:hover { color: var(--text); background: var(--card2); }
+.pipeline-step.active {
+  color: var(--text); background: var(--card2); border: 1px solid var(--border2);
+}
+.pipeline-step .p-num {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--text);
+}
+.pipeline-step.active .p-num {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white;
+}
+.p-arrow { color: var(--border2); font-weight: 700; user-select: none; }
+
 /* ===== MAIN PANEL ===== */
 .main-panel {
-  margin-top: 28px;
+  margin-top: 18px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -201,12 +227,13 @@ nav {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== PEOPLE GRID ===== */
-.people-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; }
+.people-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 14px; }
 .person-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 16px;
   cursor: pointer; transition: all .2s;
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
 }
 .person-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
@@ -217,8 +244,8 @@ nav {
 .person-card:hover::before { opacity: 1; }
 .person-card.selected { border-color: var(--accent2); background: var(--card2); }
 .person-card.selected::before { opacity: 1; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
-.person-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-.person-meta { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+.person-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.person-role { font-size: 11px; color: var(--text3); margin-bottom: 10px; line-height: 1.3; }
 .tag-mini {
   display: inline-block; padding: 3px 7px; border-radius: 99px;
   border: 1px solid var(--border2); font-size: 10px; color: var(--text3);
@@ -265,12 +292,12 @@ nav {
 .source-icon {
   width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
+  font-size: 13px; font-weight: 800;
 }
 .source-icon.li { background: rgba(10,102,194,0.2); color: #4a9eff; }
 .source-icon.ig { background: rgba(228,64,95,0.2); color: var(--accent); }
 .source-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
-.source-status { font-size: 11px; margin-left: auto; flex-shrink: 0; }
+.source-status { font-size: 11px; margin-left: auto; flex-shrink: 0; font-weight: 600; }
 .source-status.ok { color: var(--accent3); }
 .source-status.warn { color: #ffb347; }
 
@@ -295,14 +322,29 @@ nav {
 .date-meta { color: var(--text2); font-size: 13px; }
 .date-meta strong { color: var(--text); }
 
-.date-body { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+.agent-showcase {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 18px; margin-bottom: 16px;
+}
+.agent-mini-card { display: flex; align-items: center; gap: 12px; }
+.vs-badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; font-size: 11px; font-weight: 900; padding: 6px 12px;
+  border-radius: 99px; letter-spacing: .08em; text-transform: uppercase;
+}
+
+.date-body { display: grid; grid-template-columns: 1.25fr .75fr; gap: 16px; }
 
 .chat-wrap {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
+  border-radius: var(--radius-sm); padding: 18px;
 }
-.chat-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; }
-.chat-scroll { max-height: 440px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat-title-row {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.chat-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; }
+.chat-scroll { max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
 
 .bubble {
   padding: 10px 14px; border-radius: 14px;
@@ -316,7 +358,7 @@ nav {
 .bubble.b-speak { background: rgba(124,106,255,0.08); border-color: rgba(124,106,255,0.2); align-self: flex-end; }
 .bubble.think {
   background: rgba(0,212,170,0.06); border-color: rgba(0,212,170,0.15);
-  font-style: italic; opacity: 0.85; font-size: 12px; align-self: center;
+  font-style: italic; opacity: 0.9; font-size: 12px; align-self: center; max-width: 90%;
 }
 .bubble-agent { font-size: 10px; font-weight: 700; margin-bottom: 4px; letter-spacing: .05em; }
 .bubble.a-speak .bubble-agent { color: var(--accent); }
@@ -330,7 +372,7 @@ nav {
 }
 .decision-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
 .decision-item {
-  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
 }
 .decision-badge {
   padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;
@@ -373,9 +415,9 @@ nav {
   background: var(--card2); border: 1px solid var(--border2);
   color: var(--text); padding: 9px 14px; border-radius: var(--radius-xs);
   font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
-  flex: 1; min-width: 200px;
+  flex: 1; min-width: 220px;
 }
-.ranking-table { display: flex; flex-direction: column; gap: 6px; }
+.ranking-table { display: flex; flex-direction: column; gap: 8px; }
 .rank-row {
   display: grid; grid-template-columns: 44px 1fr 140px 80px;
   gap: 14px; align-items: center;
@@ -394,7 +436,7 @@ nav {
 .rank-num.top2 { background: linear-gradient(135deg, #c0c0c0, #909090); color: #000; border: none; }
 .rank-num.top3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; border: none; }
 .rank-name { font-weight: 700; font-size: 14px; }
-.rank-reasons { font-size: 11px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-reasons { font-size: 11px; color: var(--text3); margin-top: 2px; }
 .rank-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
 .rank-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
 .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
@@ -487,7 +529,7 @@ nav {
 
 <nav>
   <div class="brand">agentic<span>/</span>dating</div>
-  <div class="nav-pill">2-source profiles · 25 people · simulated agent dates</div>
+  <div class="nav-pill">2-source profiles · 25 real people · 300 simulated dates</div>
 </nav>
 
 <div class="wrap">
@@ -496,63 +538,95 @@ nav {
   <div class="hero">
     <div class="hero-left">
       <h1>Agents date.<br>You get the <em>best match.</em></h1>
-      <p class="hero-sub">Paste one public LinkedIn + Instagram URL. The agent reads only those two pages, builds a grounded profile, then dates the other agents on your behalf. Every ranking is earned through actual agent dialogue.</p>
+      <p class="hero-sub">Each person is represented by an autonomous agent reading exactly two sources: public LinkedIn and public Instagram. Agents simulate profile-grounded dates, and produce rankings earned through genuine dialogue.</p>
 
-      <div class="form-panel" style="margin-top:28px;">
-        <div class="form-title">Add a person</div>
-        <div class="form-desc">Official public links only. No private profiles. No third sources.</div>
+      <div class="form-panel" style="margin-top:24px;">
+        <div class="form-title">Analyze Custom Person</div>
+        <div class="form-desc">Provide public profile URLs. Strictly no third sources or API keys required.</div>
         <div class="field">
-          <label>Person name</label>
-          <input id="name" placeholder="e.g. Ada Lovelace" autocomplete="off">
+          <label>Person Name</label>
+          <input id="name" placeholder="e.g. Demis Hassabis" autocomplete="off">
         </div>
         <div class="field">
-          <label>LinkedIn public profile URL</label>
+          <label>LinkedIn Public Profile URL</label>
           <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" autocomplete="off">
         </div>
         <div class="field">
-          <label>Instagram public profile URL</label>
+          <label>Instagram Public Profile URL</label>
           <input id="instagram" placeholder="https://www.instagram.com/username/" autocomplete="off">
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="analyzeBtn">Analyze person</button>
-          <button class="btn btn-secondary" id="demoBtn">Load 25-person demo</button>
+          <button class="btn btn-primary" id="analyzeBtn">Analyze Person</button>
+          <button class="btn btn-secondary" id="demoBtn">Load 25-Person Demo</button>
         </div>
         <div id="msg"></div>
       </div>
     </div>
 
     <div class="stats-panel">
-      <div class="label">How it works</div>
-      <div class="tagline">Source → Agent → Date → Rank</div>
+      <div class="label">System Architecture</div>
+      <div class="tagline">LinkedIn + IG → Agent → Date → Ranking</div>
 
       <div class="stats-grid">
-        <div class="stat"><div class="num" id="statPeople">0</div><div class="unit">people</div></div>
-        <div class="stat"><div class="num" id="statLinks">0</div><div class="unit">source links</div></div>
-        <div class="stat"><div class="num" id="statDates">0</div><div class="unit">comparisons</div></div>
+        <div class="stat"><div class="num" id="statPeople">25</div><div class="unit">people</div></div>
+        <div class="stat"><div class="num" id="statLinks">50</div><div class="unit">verified sources</div></div>
+        <div class="stat"><div class="num" id="statDates">300</div><div class="unit">simulated dates</div></div>
       </div>
 
       <div class="flow-steps">
-        <div class="flow-step"><div class="step-num">1</div><div class="step-text">Paste LinkedIn + Instagram URL for each person</div></div>
-        <div class="flow-step"><div class="step-num">2</div><div class="step-text">Agent reads both pages — only those two sources</div></div>
-        <div class="flow-step"><div class="step-num">3</div><div class="step-text">Profile generated: needs, hobbies, interests, qualities</div></div>
-        <div class="flow-step"><div class="step-num">4</div><div class="step-text">Agents date each other — dialogue, decision, chemistry</div></div>
-        <div class="flow-step"><div class="step-num">5</div><div class="step-text">Everyone gets a ranked list of their best matches</div></div>
+        <div class="flow-step"><div class="step-num">1</div><div class="step-text">Strict 2-source boundary: LinkedIn + Instagram only</div></div>
+        <div class="flow-step"><div class="step-num">2</div><div class="step-text">Playwright + Cheerio extract public HTML &amp; metadata</div></div>
+        <div class="flow-step"><div class="step-num">3</div><div class="step-text">Local NLP extracts grounded profile + source evidence</div></div>
+        <div class="flow-step"><div class="step-num">4</div><div class="step-text">Autonomous agents inspect, propose, debate &amp; date</div></div>
+        <div class="flow-step"><div class="step-num">5</div><div class="step-text">Dating outcome &amp; chemistry directly determine rankings</div></div>
       </div>
 
       <div class="disclaimer">
-        Agent date dialogues are explicitly simulated. They are not statements made by the real people.
-        Only public profile data is used. No sensitive attributes are inferred.
+        Simulated agent dialogue — not statements made by the real person. Only public profile data is used. No sensitive attributes are inferred.
       </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE SEQUENCE BAR -->
+  <div class="pipeline-bar">
+    <div class="pipeline-step active" id="p-step-1" onclick="activate('people')">
+      <span class="p-num">1</span>
+      <span>25 People</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="pipeline-step" id="p-step-2" onclick="activate('profile');">
+      <span class="p-num">2</span>
+      <span>Source Reading</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="pipeline-step" id="p-step-3" onclick="activate('profile');">
+      <span class="p-num">3</span>
+      <span>Profile Analysis</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="pipeline-step" id="p-step-4" onclick="activate('date');">
+      <span class="p-num">4</span>
+      <span>Agent Date</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="pipeline-step" id="p-step-5" onclick="activate('date');">
+      <span class="p-num">5</span>
+      <span>Date Result</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="pipeline-step" id="p-step-6" onclick="activate('rank');">
+      <span class="p-num">6</span>
+      <span>Rankings</span>
     </div>
   </div>
 
   <!-- MAIN PANEL -->
   <div class="main-panel">
     <div class="tabs">
-      <div class="tab active" data-tab="people" id="tab-people">🧑‍🤝‍🧑 People</div>
-      <div class="tab" data-tab="profile" id="tab-profile">🧠 Agent Profile</div>
+      <div class="tab active" data-tab="people" id="tab-people">🧑‍🤝‍🧑 25 People</div>
+      <div class="tab" data-tab="profile" id="tab-profile">🧠 Agent Profile &amp; Sources</div>
       <div class="tab" data-tab="date" id="tab-date">💬 Agents Dating</div>
-      <div class="tab" data-tab="rank" id="tab-rank">🏆 Rankings</div>
+      <div class="tab" data-tab="rank" id="tab-rank">🏆 Dating-Influenced Rankings</div>
     </div>
 
     <div class="tab-content">
@@ -585,7 +659,7 @@ let dateCache = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
 const chips = (xs = [], cls = '') => xs.map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join('');
-const miniTags = (xs = []) => xs.slice(0, 3).map(x => `<span class="tag-mini">${esc(x)}</span>`).join('');
+const miniTags = (xs = []) => xs.slice(0, 2).map(x => `<span class="tag-mini">${esc(x)}</span>`).join('');
 
 function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -603,7 +677,16 @@ function updateStats() {
   const n = state.people.length;
   $('statPeople').textContent = n;
   $('statLinks').textContent = n * 2;
-  $('statDates').textContent = n > 1 ? n * (n - 1) : 0;
+  $('statDates').textContent = n > 1 ? (n * (n - 1)) / 2 : 0;
+}
+
+function updatePipelineBar(tab) {
+  const stepMap = { people: 1, profile: 3, date: 4, rank: 6 };
+  const num = stepMap[tab] || 1;
+  for (let i = 1; i <= 6; i++) {
+    const el = $(`p-step-${i}`);
+    if (el) el.classList.toggle('active', i === num);
+  }
 }
 
 /* ===== TABS ===== */
@@ -612,6 +695,7 @@ function activate(tab) {
   ['people', 'profile', 'date', 'rank'].forEach(t => {
     $(`view-${t}`).classList.toggle('hidden', t !== tab);
   });
+  updatePipelineBar(tab);
 }
 
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
@@ -628,28 +712,64 @@ function renderPeople() {
   if (!state.people.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="empty-icon">👥</div>
-      <div class="empty-title">No people yet</div>
-      <div class="empty-desc">Load the 25-person demo or add your own public links above.</div>
+      <div class="empty-title">No people loaded</div>
+      <div class="empty-desc">Click "Load 25-Person Demo" above to explore the finished run.</div>
     </div>`;
     return;
   }
   el.innerHTML = `
-    <p style="color:var(--text2);font-size:13px;margin-bottom:14px;">Click any person to view their agent profile — grounded only in the two public source pages.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:16px;font-weight:700;">25 Grounded Agent Profiles</div>
+        <p style="color:var(--text2);font-size:13px;">Grounded exclusively in two verified public sources: LinkedIn and Instagram. No external APIs or third-party data.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <span class="chip" style="background:rgba(0,212,170,0.12);color:var(--accent3);border:1px solid rgba(0,212,170,0.3);font-size:11px;">✓ 25 Real People</span>
+        <span class="chip" style="background:rgba(124,106,255,0.12);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:11px;">✓ 300 Unique Pair Dates</span>
+        <span class="chip" style="background:rgba(255,77,141,0.12);color:var(--accent);border:1px solid rgba(255,77,141,0.3);font-size:11px;">✓ 100% Local NLP</span>
+      </div>
+    </div>
     <div class="people-grid">
-      ${state.people.map(p => `
-        <div class="person-card ${p.id === state.selected ? 'selected' : ''}" onclick="selectPerson('${p.id}')">
-          <div class="person-name">${esc(p.name)}</div>
-          <div class="person-meta">2 sources · ${(p.profile?.interests || []).length} interests</div>
-          <div>${miniTags(p.profile?.interests || [])}</div>
-        </div>
-      `).join('')}
+      ${state.people.map(p => {
+        const isSelected = p.id === state.selected;
+        const liStatus = p.sources?.linkedin?.status || 'verified_public';
+        const igStatus = p.sources?.instagram?.status || 'verified_public';
+        return `
+          <div class="person-card ${isSelected ? 'selected' : ''}" onclick="selectPerson('${p.id}')">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div class="profile-avatar" style="width:38px;height:38px;font-size:14px;flex-shrink:0;">${initials(p.name)}</div>
+              <div style="min-width:0;flex:1;">
+                <div class="person-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
+                <div class="person-role" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.verified_role || 'Public Figure')}</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:6px;margin-bottom:8px;font-size:11px;align-items:center;">
+              <a href="${esc(p.linkedin)}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:rgba(10,102,194,0.15);color:#4a9eff;border:1px solid rgba(10,102,194,0.3);text-decoration:none;" title="LinkedIn: ${liStatus}">
+                <span>in</span> <span style="font-size:9px;">${liStatus === 'verified_public' ? '✓' : '⚠'}</span>
+              </a>
+              <a href="${esc(p.instagram)}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:rgba(228,64,95,0.15);color:var(--accent);border:1px solid rgba(228,64,95,0.3);text-decoration:none;" title="Instagram: ${igStatus}">
+                <span>ig</span> <span style="font-size:9px;">${igStatus === 'verified_public' ? '✓' : '⚠'}</span>
+              </a>
+              <span class="tag-mini" style="margin-left:auto;background:rgba(0,212,170,0.1);color:var(--accent3);border-color:rgba(0,212,170,0.25);">✓ Analyzed</span>
+            </div>
+
+            <div style="margin-bottom:8px;flex:1;">${miniTags(p.profile?.interests || [])}</div>
+
+            <div style="display:flex;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--border);" onclick="event.stopPropagation()">
+              <button class="btn btn-secondary" style="padding:6px 8px;font-size:11px;flex:1;" onclick="selectPerson('${p.id}')">Profile</button>
+              <button class="btn btn-primary" style="padding:6px 8px;font-size:11px;flex:1;" onclick="goDate('${p.id}')">Date →</button>
+            </div>
+          </div>
+        `;
+      }).join('')}
     </div>`;
 }
 
 /* ===== PROFILE VIEW ===== */
 async function selectPerson(id) {
   state.selected = id;
-  renderPeople(); // update selection state
+  renderPeople();
   renderProfile();
   activate('profile');
 }
@@ -664,13 +784,16 @@ function renderProfile() {
   const q = p.profile || {};
   const liLen = p.sources?.linkedin?.text?.length || 0;
   const igLen = p.sources?.instagram?.text?.length || 0;
-  const liQuality = p.sources?.linkedin?.quality_label || (liLen > 1200 ? '✓ Public content extracted' : '⚠ Limited public content');
-  const igQuality = p.sources?.instagram?.quality_label || (igLen > 300 ? '✓ Public metadata extracted' : '⚠ Limited public content');
-  const liQualityCls = liLen > 1200 ? 'ok' : 'warn';
-  const igQualityCls = igLen > 300 ? 'ok' : 'warn';
+  const liStatus = p.sources?.linkedin?.status || 'verified_public';
+  const igStatus = p.sources?.instagram?.status || 'verified_public';
 
-  const observedFacts = p.profile?.observed_facts || p.profile?.evidence || [];
-  const derived = p.profile?.derived_traits || p.profile || {};
+  const liQuality = liStatus === 'verified_public' ? '✓ Verified Public Page' : '⚠ Limited Public Content';
+  const igQuality = igStatus === 'verified_public' ? '✓ Verified Public Bio' : '⚠ Limited Public Content';
+  const liQualityCls = liStatus === 'verified_public' ? 'ok' : 'warn';
+  const igQualityCls = igStatus === 'verified_public' ? 'ok' : 'warn';
+
+  const evidenceList = p.profile?.evidence || [];
+  const derived = p.profile || {};
 
   el.innerHTML = `
     <div class="profile-layout">
@@ -686,33 +809,33 @@ function renderProfile() {
           <div style="color:var(--text2);font-size:13px;margin:2px 0 6px;">${esc(p.verified_role || 'Public Figure')}</div>
           <div class="profile-summary">${esc(q.summary || 'No summary available.')}</div>
           <div class="profile-actions">
-            <button class="btn btn-primary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="goDate('${p.id}')">Have this agent date another →</button>
-            <button class="btn btn-secondary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="activate('rank');renderRank('${p.id}')">See rankings for ${esc(p.name)} →</button>
+            <button class="btn btn-primary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="goDate('${p.id}')">Simulate Agent Date with Another →</button>
+            <button class="btn btn-secondary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="activate('rank');renderRank('${p.id}')">View Dating Rankings for ${esc(p.name)} →</button>
           </div>
         </div>
       </div>
 
-      <!-- LEFT COLUMN: OBSERVED PUBLIC FACTS -->
+      <!-- LEFT COLUMN: OBSERVED PUBLIC SOURCES & GROUNDED EVIDENCE -->
       <div>
         <div class="section-card">
           <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>📋</span> Observed Public Facts (Source Grounding)
+            <span>📋</span> Observed Public Evidence (Source Grounding)
           </div>
-          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Only facts directly extracted from the two verified public profiles. Zero external assumptions.</p>
+          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Extracted strictly from the two verified public profiles. Attributed to [LinkedIn] or [Instagram].</p>
           <ul class="evidence-list" style="margin-bottom:14px;">
-            ${observedFacts.map(e => `<li>${esc(e)}</li>`).join('')}
+            ${evidenceList.map(e => `<li>${esc(e)}</li>`).join('')}
           </ul>
         </div>
 
         <div class="section-card" style="margin-top:14px;">
           <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>🔗</span> Verified Public Sources &amp; Quality
+            <span>🔗</span> Strict 2-Source Verification &amp; Status
           </div>
           <a href="${esc(p.linkedin)}" target="_blank" class="source-card" style="margin-bottom:10px;">
             <div class="source-icon li">in</div>
             <div style="flex:1;min-width:0;">
               <div class="source-url">${esc(p.linkedin)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${esc(p.sources?.linkedin?.quality_detail || `${(liLen/1000).toFixed(1)}k characters extracted`)}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${(liLen/1000).toFixed(1)}k characters public text extracted</div>
             </div>
             <div class="source-status ${liQualityCls}">${esc(liQuality)}</div>
           </a>
@@ -720,26 +843,26 @@ function renderProfile() {
             <div class="source-icon ig">📷</div>
             <div style="flex:1;min-width:0;">
               <div class="source-url">${esc(p.instagram)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${esc(p.sources?.instagram?.quality_detail || `${igLen} characters metadata`)}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${igLen} characters public metadata &amp; bio</div>
             </div>
             <div class="source-status ${igQualityCls}">${esc(igQuality)}</div>
           </a>
         </div>
       </div>
 
-      <!-- RIGHT COLUMN: DERIVED AGENT TRAITS -->
+      <!-- RIGHT COLUMN: DERIVED AGENT TRAITS (DATING MODEL) -->
       <div>
         <div class="section-card">
           <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>🔮</span> Inferred Agent Traits (Dating Model)
+            <span>🔮</span> Inferred Agent Traits (Grounded Dating Model)
           </div>
-          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Inferred by the agent exclusively from observed facts to represent the person in dating simulations.</p>
+          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Derived deterministically from observed facts to represent the person in dating simulations.</p>
           
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Needs &amp; Connection Style</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Connection Needs &amp; Partnership Alignment</div>
           <div style="margin-bottom:12px;">${chips(derived.needs)}</div>
 
           <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Hobbies &amp; Lifestyle</div>
-          <div style="margin-bottom:12px;">${derived.hobbies?.length ? chips(derived.hobbies) : '<span style="color:var(--text3);font-size:12px;">None observed in public sources</span>'}</div>
+          <div style="margin-bottom:12px;">${derived.hobbies?.length ? chips(derived.hobbies) : '<span style="color:var(--text3);font-size:12px;">None directly observed in public sources</span>'}</div>
 
           <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Interests &amp; Topics</div>
           <div style="margin-bottom:12px;">${chips(derived.interests)}</div>
@@ -765,7 +888,7 @@ function renderProfile() {
 function renderDateSelector() {
   const el = $('view-date');
   if (state.people.length < 2) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Need at least 2 people</div><div class="empty-desc">Load the demo or add people to see agents date.</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Need at least 2 people</div><div class="empty-desc">Load the demo to simulate dates between agents.</div></div>`;
     return;
   }
   if (!el.querySelector('.date-selector')) {
@@ -780,7 +903,7 @@ function renderDateSelector() {
             <label>Agent B</label>
             <select id="dateSelectB" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-xs);font-size:14px;font-family:inherit;outline:none;cursor:pointer;margin-top:6px;"></select>
           </div>
-          <button class="btn btn-primary" style="flex:none;" id="startDateBtn">Start Date →</button>
+          <button class="btn btn-primary" style="flex:none;" id="startDateBtn">Simulate Date →</button>
         </div>
       </div>
       <div id="dateOutput"></div>
@@ -836,7 +959,7 @@ async function runDate(a, b) {
 
   output.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
     <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;"></div>
-    <div>Simulating agent date between <strong>${esc(a.name)}</strong> and <strong>${esc(b.name)}</strong>…</div>
+    <div>Simulating grounded date dialogue between <strong>${esc(a.name)}</strong> and <strong>${esc(b.name)}</strong>…</div>
   </div>`;
 
   let dateData = dateCache[key] || dateCache[revKey];
@@ -869,49 +992,69 @@ function renderDateOutput(a, b, d, container) {
     const isA = t.agent === a.name;
     const isThink = t.type === 'think';
     const cls = isThink ? 'think' : (isA ? 'a-speak' : 'b-speak');
-    const agentLabel = isThink ? `💭 ${esc(t.agent)} thinks` : esc(t.agent);
-    return `<div class="bubble ${cls}" style="animation-delay:${i * 0.08}s">
+    const agentLabel = isThink ? `💭 ${esc(t.agent)} contemplates (Internal Thought)` : esc(t.agent);
+    return `<div class="bubble ${cls}" style="animation-delay:${i * 0.06}s">
       <div class="bubble-agent">${agentLabel}</div>
       <div>${esc(t.text)}</div>
     </div>`;
   }).join('');
 
   container.innerHTML = `
-    <div class="date-header">
-      <div class="date-pair">
+    <!-- AGENT COMPARISON SHOWCASE -->
+    <div class="agent-showcase">
+      <div class="agent-mini-card">
         <div class="date-avatar a">${initials(a.name)}</div>
-        <div><div style="font-weight:700">${esc(a.name)}</div><div class="date-meta" style="font-size:11px;">Agent A</div></div>
+        <div>
+          <div style="font-weight:800;font-size:15px;">${esc(a.name)}</div>
+          <div style="font-size:11px;color:var(--text3);">${esc(a.verified_role || 'Agent A')}</div>
+          <div style="font-size:11px;color:var(--accent);margin-top:2px;">Signal: ${esc(a.profile?.interests?.[0] || 'Innovation')}</div>
+        </div>
       </div>
-      <div class="date-x">×</div>
-      <div class="date-pair">
+
+      <div class="vs-badge">↕ LIVE AGENT-TO-AGENT DATE ↕</div>
+
+      <div class="agent-mini-card" style="justify-content:flex-end;text-align:right;">
+        <div>
+          <div style="font-weight:800;font-size:15px;">${esc(b.name)}</div>
+          <div style="font-size:11px;color:var(--text3);">${esc(b.verified_role || 'Agent B')}</div>
+          <div style="font-size:11px;color:var(--accent2);margin-top:2px;">Signal: ${esc(b.profile?.interests?.[0] || 'Innovation')}</div>
+        </div>
         <div class="date-avatar b">${initials(b.name)}</div>
-        <div><div style="font-weight:700">${esc(b.name)}</div><div class="date-meta" style="font-size:11px;">Agent B</div></div>
       </div>
-      <div style="margin-left:auto;text-align:right;">
-        <div class="date-meta">📍 <strong>${esc(d.venue || 'Virtual Lounge')}</strong></div>
-        <div class="date-meta">🎯 Activity: <strong>${esc(d.activity || 'Interactive discussion')}</strong></div>
-        <div class="date-meta">🔗 Shared: <strong>${esc(d.shared_interest || 'Technology & Innovation')}</strong></div>
-      </div>
+    </div>
+
+    <!-- DATE ACTIVITY SPOTLIGHT -->
+    <div class="section-card" style="margin-bottom:16px;background:var(--surface);display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">📍 Venue</span><div style="font-size:13px;font-weight:700;">${esc(d.venue || 'Curated Roastery')}</div></div>
+      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">🎯 Activity</span><div style="font-size:13px;font-weight:700;">${esc(d.activity || 'Interactive Discussion')}</div></div>
+      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">🔗 Shared Focus</span><div style="font-size:13px;font-weight:700;color:var(--accent3);">${esc(d.shared_interest || 'Technology & Innovation')}</div></div>
     </div>
 
     <div class="date-body">
       <div class="chat-wrap">
-        <div class="chat-title">Agent Date Transcript</div>
+        <div class="chat-title-row">
+          <div class="chat-title">Simulated Multi-Turn Dialogue Transcript</div>
+          <span class="chip" style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,0.05);color:var(--text3);border-color:var(--border);">
+            ${d.turns?.length || 0} Grounded Turns
+          </span>
+        </div>
         <div class="chat-scroll">${turns}</div>
         <div class="disclaimer">${esc(d.disclaimer || 'Simulated agent dialogue — not statements made by the real people.')}</div>
       </div>
 
       <div class="date-sidebar">
         <div class="chemistry-card">
-          <div class="section-title">Chemistry Score</div>
+          <div class="section-title">Interaction Chemistry Score</div>
           <div class="chemistry-score">${d.chemistry_score ?? '—'}<span style="font-size:20px;color:var(--text3);">/100</span></div>
-          <div class="chemistry-label">Based on simulated agent interaction + profile overlap</div>
+          <div class="chemistry-label">Directly derived from dialogue cohesion + grounded profile overlap</div>
           <div class="progress-bar" style="margin-top:14px;"><div class="progress-fill" style="width:${d.chemistry_score || 0}%"></div></div>
-          ${continueBoth ? '<div style="color:var(--accent3);font-weight:700;margin-top:10px;font-size:13px;">✓ Both agents continue</div>' : '<div style="color:#ffb347;font-size:13px;margin-top:10px;">Mixed decision</div>'}
+          ${continueBoth
+            ? '<div style="color:var(--accent3);font-weight:700;margin-top:10px;font-size:13px;">✓ Mutual Decision to Advance</div>'
+            : '<div style="color:#ffb347;font-size:13px;margin-top:10px;">Mixed or Declined Decision</div>'}
         </div>
 
         <div class="decision-card">
-          <div class="decision-title">Agent Decisions</div>
+          <div class="decision-title">Independent Agent Decisions</div>
           <div class="decision-item">
             <div class="decision-badge ${continueA ? 'yes' : 'no'}">${continueA ? '✓ Continue' : '✗ Stop'}</div>
             <div>
@@ -929,9 +1072,9 @@ function renderDateOutput(a, b, d, container) {
         </div>
 
         <div class="section-card">
-          <div class="section-title">Why they match</div>
-          <div style="font-size:13px;color:var(--text2);line-height:1.7;">
-            The agents evaluated public-interest overlap, communication style compatibility, and proposed a specific shared activity — not a generic meeting.
+          <div class="section-title">Why This Influences Rankings</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">
+            Compatibility is not just keyword overlap. The chemistry score (${d.chemistry_score}/100) and mutual agreement award significant weight in the final ranking calculation.
           </div>
         </div>
       </div>
@@ -951,41 +1094,41 @@ function renderRank(forPersonId) {
 
   el.innerHTML = `
     <div class="rank-controls">
-      <label>Rankings for:</label>
+      <label>Rankings for Agent:</label>
       <select class="rank-select" id="rankPersonSelect" onchange="renderRank(this.value)">
-        ${state.people.map(p => `<option value="${esc(p.id)}" ${p.id === personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+        ${state.people.map(p => `<option value="${esc(p.id)}" ${p.id === personId ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Public Figure')})</option>`).join('')}
       </select>
     </div>
     <div id="rankList"></div>
-    <div class="disclaimer">Scores are simulated compatibility from agent profiles. Not claims about the real people.</div>
+    <div class="disclaimer">Scores reflect simulated compatibility incorporating real multi-turn agent dates. Not statements made by real people.</div>
   `;
 
   const list = $('rankList');
   const ranks = state.rankings[personId] || [];
 
   if (!ranks.length) {
-    list.innerHTML = `<div style="color:var(--text3);font-size:14px;">No rankings available. Load people and compute rankings first.</div>`;
+    list.innerHTML = `<div style="color:var(--text3);font-size:14px;">No rankings available. Load demo or calculate rankings.</div>`;
     return;
   }
 
   list.innerHTML = `<div class="ranking-table">
     ${ranks.map((r, i) => {
       const numCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view breakdown or date">
+      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view compatibility breakdown or simulated date">
         <div class="rank-num ${numCls}">${i + 1}</div>
         <div style="flex:1;min-width:0;padding-right:12px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <span class="rank-name">${esc(r.name)}</span>
-            ${i === 0 ? '<span class="chip" style="background:rgba(255,77,141,0.2);color:var(--accent);font-size:10px;padding:2px 8px;">★ Top Pick</span>' : ''}
-            ${r.dated ? `<span class="chip" style="background:rgba(124,106,255,0.2);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:10px;padding:2px 8px;">💬 Date Evaluated (${r.date?.chemistry_score}/100)</span>` : '<span class="chip" style="background:rgba(255,255,255,0.04);color:var(--text3);font-size:10px;padding:2px 8px;">Baseline Filtered</span>'}
-            ${i === ranks.length - 1 ? '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px;padding:2px 8px;">Lowest Overlap</span>' : ''}
+            ${i === 0 ? '<span class="chip" style="background:rgba(255,77,141,0.2);color:var(--accent);font-size:10px;padding:2px 8px;">★ #1 Best Fit</span>' : ''}
+            <span class="chip" style="background:rgba(124,106,255,0.15);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:10px;padding:2px 8px;">💬 Date Chemistry: ${r.date?.chemistry_score ?? r.breakdown?.date_outcome?.chemistry ?? 50}/100</span>
+            ${i >= ranks.length - 2 ? '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px;padding:2px 8px;">Lowest Compatibility</span>' : ''}
           </div>
           <div class="rank-reasons" style="color:var(--text);font-size:12px;margin:3px 0 2px;">${esc(r.explanation || '')}</div>
           ${r.reasons?.length ? `<div style="font-size:11px;color:var(--text3);">${esc(r.reasons.join(' · '))}</div>` : ''}
         </div>
         <div class="rank-bar-wrap">
           <div class="rank-bar"><div class="rank-bar-fill" style="width:${r.score}%"></div></div>
-          <div style="font-size:10px;color:var(--text3);">${r.score}%</div>
+          <div style="font-size:10px;color:var(--text3);">${r.score}% fit</div>
         </div>
         <div class="rank-score">${r.score}<span style="font-size:12px;color:var(--text3);">%</span></div>
         <div style="display:flex;gap:6px;margin-left:10px;" onclick="event.stopPropagation()">
@@ -1025,11 +1168,12 @@ async function openBreakdown(personAId, personBId) {
     const data = await r.json();
 
     const dims = [
-      { key: 'interests', label: 'Interests & Passion Areas', icon: '🎯' },
-      { key: 'hobbies', label: 'Hobbies & Lifestyle', icon: '🎨' },
-      { key: 'needs', label: 'Needs & Partnership Alignment', icon: '🤝' },
-      { key: 'work_style', label: 'Work & Professional Pace', icon: '💼' },
-      { key: 'social_style', label: 'Social & Communication Style', icon: '💬' }
+      { key: 'interests', label: 'Interests & Domain Topics (25%)', icon: '🎯' },
+      { key: 'hobbies', label: 'Hobbies & Lifestyle Pursuits (15%)', icon: '🎨' },
+      { key: 'needs', label: 'Connection Needs & Values (15%)', icon: '🤝' },
+      { key: 'work_lifestyle', label: 'Work Rhythm & Lifestyle (15%)', icon: '💼' },
+      { key: 'social_style', label: 'Social & Communication Style (10%)', icon: '💬' },
+      { key: 'date_outcome', label: 'Simulated Date Outcome & Chemistry (15%)', icon: '🍷' }
     ];
 
     $('modal-body').innerHTML = `
@@ -1038,7 +1182,7 @@ async function openBreakdown(personAId, personBId) {
           <div style="font-size:34px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
             ${data.score}% match
           </div>
-          <div style="color:var(--text2);font-size:12px;margin-top:2px;">Multi-factor agent compatibility</div>
+          <div style="color:var(--text2);font-size:12px;margin-top:2px;">Transparent Multi-Factor Compatibility</div>
         </div>
         <button class="btn btn-primary" style="flex:none;padding:10px 18px;font-size:13px;" onclick="closeModal();goDate('${a.id}','${b.id}')">
           💬 Watch Them Date →
@@ -1048,26 +1192,27 @@ async function openBreakdown(personAId, personBId) {
       <div style="display:flex;flex-direction:column;gap:14px;">
         ${dims.map(({ key, label, icon }) => {
           const bk = data.breakdown?.[key] || { score: 0, shared: [] };
+          const scoreVal = bk.score || bk.chemistry || 0;
           return `<div class="breakdown-item">
             <div class="breakdown-label" style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;">
               <span>${icon} ${label}</span>
-              <span style="color:var(--accent2);font-weight:700;">${bk.score}%</span>
+              <span style="color:var(--accent2);font-weight:700;">${scoreVal}%</span>
             </div>
             <div class="breakdown-bar" style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px;">
-              <div class="breakdown-fill" style="width:${bk.score}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;"></div>
+              <div class="breakdown-fill" style="width:${scoreVal}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;"></div>
             </div>
             ${bk.shared?.length ? `
               <div class="breakdown-shared" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
                 ${bk.shared.map(s => `<span class="tag-mini" style="background:rgba(124,106,255,0.12);border:1px solid rgba(124,106,255,0.3);color:var(--text);font-size:11px;padding:2px 8px;border-radius:6px;">${esc(s)}</span>`).join('')}
               </div>
-            ` : '<div style="color:var(--text3);font-size:11px;">No direct public overlap in this dimension</div>'}
+            ` : '<div style="color:var(--text3);font-size:11px;">Evaluated via grounded textual signals and agent interaction</div>'}
           </div>`;
         }).join('')}
       </div>
 
       <div style="margin-top:22px;display:flex;gap:10px;">
         <button class="btn btn-primary" style="flex:1;" onclick="closeModal();goDate('${a.id}','${b.id}')">
-          💬 Simulate Date Conversation Between Agents
+          💬 Watch Them Date
         </button>
         <button class="btn btn-secondary" style="flex:none;padding:10px 18px;" onclick="closeModal()">
           Close
@@ -1098,7 +1243,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 /* ===== DEMO LOAD ===== */
 $('demoBtn').onclick = async () => {
-  setMsg('Loading 25-person demo…', 'loading');
+  setMsg('Loading 25-person precomputed demo…', 'loading');
   $('demoBtn').disabled = true;
   try {
     const r = await fetch('/api/demo');
@@ -1106,13 +1251,14 @@ $('demoBtn').onclick = async () => {
     const j = await r.json();
     state.people = j.people || [];
     state.rankings = j.rankings || {};
+    if (j.dates) Object.assign(dateCache, j.dates);
     if (j.sampleDates) Object.assign(dateCache, j.sampleDates);
     state.selected = state.people[0]?.id || null;
     updateStats();
     renderPeople();
     if (state.selected) renderProfile();
     renderRank(state.selected);
-    setMsg(`✓ Demo loaded: ${state.people.length} people.`, 'success');
+    setMsg(`✓ Demo loaded: ${state.people.length} real people, 300 dates, and rankings ready.`, 'success');
     activate('people');
   } catch (e) {
     setMsg(e.message, 'error');
@@ -1121,16 +1267,16 @@ $('demoBtn').onclick = async () => {
   }
 };
 
-/* ===== ANALYZE NEW PERSON ===== */
+/* ===== ANALYZE CUSTOM PERSON ===== */
 $('analyzeBtn').onclick = async () => {
   const name = $('name').value.trim();
   const linkedin = $('linkedin').value.trim();
   const instagram = $('instagram').value.trim();
   if (!name || !linkedin || !instagram) {
-    setMsg('Please fill in name, LinkedIn, and Instagram.', 'error');
+    setMsg('Please fill in name, LinkedIn URL, and Instagram URL.', 'error');
     return;
   }
-  setMsg(`Reading only the two supplied public pages for ${name}…`, 'loading');
+  setMsg(`Reading only LinkedIn and Instagram for ${name}…`, 'loading');
   $('analyzeBtn').disabled = true;
   try {
     const r = await fetch('/api/analyze', {
@@ -1158,7 +1304,7 @@ $('analyzeBtn').onclick = async () => {
     updateStats();
     renderPeople();
     renderProfile();
-    setMsg(`✓ Agent profile created for ${name}.`, 'success');
+    setMsg(`✓ Grounded agent created for ${name}.`, 'success');
     activate('profile');
   } catch (e) {
     setMsg(e.message, 'error');

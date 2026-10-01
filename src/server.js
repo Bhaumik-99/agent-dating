@@ -7,7 +7,7 @@ import fs from 'fs/promises';
 import { scrapePublicPage } from './scraper.js';
 import { analyzePerson, generateDateDialogue } from './agent.js';
 import { rankPeople, compatibility } from './match.js';
-import { emptyProfile } from './schema.js';
+import { createPerson } from './schema.js';
 
 const app = express();
 app.use(cors());
@@ -32,9 +32,10 @@ app.get('/api/demo', async (req, res) => {
     if (!DEMO || !DEMO.people?.length) {
       return res.status(404).json({ error: 'No demo data available.' });
     }
+    const dates = DEMO.dates || DEMO.sampleDates || {};
     // Return deterministic cached rankings that incorporate the agent dates
-    const rankings = DEMO.rankings || rankPeople(DEMO.people, DEMO.sampleDates || {});
-    res.json({ people: DEMO.people, rankings, sampleDates: DEMO.sampleDates || {} });
+    const rankings = DEMO.rankings || rankPeople(DEMO.people, dates);
+    res.json({ people: DEMO.people, rankings, dates, sampleDates: dates });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -58,7 +59,7 @@ app.post('/api/analyze', async (req, res) => {
     ]);
     console.log(`[analyze] Scraped. LinkedIn: ${li.text.length}ch, Instagram: ${ig.text.length}ch`);
 
-    const p = emptyProfile(`live-${Date.now()}`, name, li.url, ig.url);
+    const p = createPerson(`live-${Date.now()}`, name, li.url, ig.url);
     p.sources.linkedin = li;
     p.sources.instagram = ig;
     p.profile = await analyzePerson(p);
