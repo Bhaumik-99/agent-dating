@@ -1158,16 +1158,40 @@ function initials(name) {
 }
 
 function sanitizePeople(list = []) {
-  return (list || []).filter(p => {
-    if (!p || !p.name) return false;
-    const n = String(p.name).trim().toLowerCase();
-    if (n.includes('grounded in public evidence') ||
-        n.includes('evaluated through dialogue') ||
-        n.includes('protocol specification')) {
-      return false;
+  const seenIds = new Set();
+  const seenNames = new Set();
+  const seenUrls = new Set();
+  const result = [];
+
+  for (const p of list || []) {
+    if (!p || !p.name) continue;
+    const cleanName = String(p.name).trim();
+    const nameLower = cleanName.toLowerCase();
+
+    // Drop headline slogan text
+    if (nameLower.includes('grounded in public evidence') ||
+        nameLower.includes('evaluated through dialogue') ||
+        nameLower.includes('protocol specification')) {
+      continue;
     }
-    return true;
-  });
+
+    const normLi = String(p.linkedin || '').toLowerCase().replace(/\/+$/, '');
+    const normIg = String(p.instagram || '').toLowerCase().replace(/\/+$/, '');
+
+    // Skip duplicates by ID, normalized Name, or LinkedIn URL
+    if (seenIds.has(p.id) || seenNames.has(nameLower) || (normLi && seenUrls.has(normLi))) {
+      continue;
+    }
+
+    seenIds.add(p.id);
+    seenNames.add(nameLower);
+    if (normLi) seenUrls.add(normLi);
+    if (normIg) seenUrls.add(normIg);
+
+    result.push(p);
+  }
+
+  return result;
 }
 
 async function resetDemo() {
@@ -1468,19 +1492,22 @@ function populateDateSelects(preferredA, preferredB) {
   if (!selA || !selB) return;
 
   const currentA = preferredA || selA.value || state.selected || state.people[0]?.id;
-  let currentB = preferredB || selB.value;
 
-  if (!currentB || currentB === currentA) {
+  // Candidate selected in Agent A is completely filtered out from Agent B options
+  const availableB = state.people.filter(p => p.id !== currentA);
+
+  let currentB = preferredB || selB.value;
+  if (!currentB || currentB === currentA || !availableB.some(p => p.id === currentB)) {
     const rankList = state.rankings[currentA] || [];
-    currentB = rankList.find(r => r.id !== currentA)?.id || state.people.find(p => p.id !== currentA)?.id || state.people[1]?.id;
+    currentB = rankList.find(r => r.id !== currentA && availableB.some(p => p.id === r.id))?.id || availableB[0]?.id;
   }
 
   selA.innerHTML = state.people.map(p =>
     `<option value="${esc(p.id)}" ${p.id === currentA ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})</option>`
   ).join('');
 
-  selB.innerHTML = state.people.map(p =>
-    `<option value="${esc(p.id)}" ${p.id === currentB ? 'selected' : ''} ${p.id === currentA ? 'disabled style="opacity:0.45;"' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})${p.id === currentA ? ' — [Active as Agent A]' : ''}</option>`
+  selB.innerHTML = availableB.map(p =>
+    `<option value="${esc(p.id)}" ${p.id === currentB ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})</option>`
   ).join('');
 
   selA.value = currentA;
@@ -1489,20 +1516,16 @@ function populateDateSelects(preferredA, preferredB) {
   selA.onchange = () => {
     const aId = selA.value;
     let bId = selB.value;
-    if (bId === aId) {
-      bId = state.people.find(p => p.id !== aId)?.id;
+    const nextAvailableB = state.people.filter(p => p.id !== aId);
+    if (bId === aId || !nextAvailableB.some(p => p.id === bId)) {
+      const rankList = state.rankings[aId] || [];
+      bId = rankList.find(r => r.id !== aId && nextAvailableB.some(p => p.id === r.id))?.id || nextAvailableB[0]?.id;
     }
     populateDateSelects(aId, bId);
     triggerDateSimulation();
   };
 
   selB.onchange = () => {
-    const aId = selA.value;
-    const bId = selB.value;
-    if (bId === aId) {
-      setMsg('Please select two distinct candidate agents to simulate a date.', 'warn');
-      return;
-    }
     triggerDateSimulation();
   };
 }
@@ -2057,7 +2080,21 @@ $('analyzeBtn').onclick = async () => {
     const j = await r.json();
     if (!r.ok) { setMsg(j.error || 'Live analysis failed.', 'error'); return; }
 
-    state.people = sanitizePeople([...state.people.filter(p => p.id !== j.id), j]);
+    const jName = String(j.name || '').trim().toLowerCase();
+    const jLi = String(j.linkedin || '').trim().toLowerCase().replace(/\/+$/, '');
+    const jIg = String(j.instagram || '').trim().toLowerCase().replace(/\/+$/, '');
+
+    const filtered = state.people.filter(p => {
+      if (p.id === j.id) return false;
+      if (String(p.name || '').trim().toLowerCase() === jName) return false;
+      const pLi = String(p.linkedin || '').trim().toLowerCase().replace(/\/+$/, '');
+      if (jLi && pLi === jLi) return false;
+      const pIg = String(p.instagram || '').trim().toLowerCase().replace(/\/+$/, '');
+      if (jIg && pIg === jIg) return false;
+      return true;
+    });
+
+    state.people = sanitizePeople([j, ...filtered]);
     state.selected = j.id;
 
     if (state.people.length >= 2) {
