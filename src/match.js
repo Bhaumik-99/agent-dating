@@ -198,25 +198,54 @@ export function compatibility(personA, personB, existingDate = null) {
   };
 }
 
+function getPersonIdentifiers(p) {
+  if (!p) return { id: '', nameKey: '', liSlug: '', igSlug: '' };
+  const id = String(p.id || '');
+  const nameKey = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const liSlug = (p.linkedin || '').match(/linkedin\.com\/in\/([^/?#]+)/i)?.[1]?.toLowerCase().replace(/[-_.]/g, '') || '';
+  const igSlug = (p.instagram || '').match(/instagram\.com\/([^/?#]+)/i)?.[1]?.toLowerCase().replace(/[-_.]/g, '') || '';
+  return { id, nameKey, liSlug, igSlug };
+}
+
 /**
  * Computes rankings for every person incorporating simulated dates.
  */
 export function rankPeople(people, datesMap = {}) {
-  // Deduplicate input list by normalized name and ID
-  const seenKeys = new Set();
+  // Deduplicate input list by ID, normalized name, LinkedIn slug, and Instagram slug
+  const seenIds = new Set();
+  const seenNames = new Set();
+  const seenLiSlugs = new Set();
+  const seenIgSlugs = new Set();
   const cleanPeople = [];
+
   for (const p of people || []) {
-    const key = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') || p.id;
-    if (!seenKeys.has(key)) {
-      seenKeys.add(key);
-      cleanPeople.push(p);
+    if (!p || !p.name) continue;
+    const { id, nameKey, liSlug, igSlug } = getPersonIdentifiers(p);
+    if (seenIds.has(id) ||
+        (nameKey && seenNames.has(nameKey)) ||
+        (liSlug && seenLiSlugs.has(liSlug)) ||
+        (igSlug && seenIgSlugs.has(igSlug))) {
+      continue;
     }
+    seenIds.add(id);
+    if (nameKey) seenNames.add(nameKey);
+    if (liSlug) seenLiSlugs.add(liSlug);
+    if (igSlug) seenIgSlugs.add(igSlug);
+    cleanPeople.push(p);
   }
 
   return Object.fromEntries(cleanPeople.map(p => {
-    const pKey = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const pMeta = getPersonIdentifiers(p);
     const list = cleanPeople
-      .filter(x => x.id !== p.id && (x.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') !== pKey)
+      .filter(x => {
+        if (!x || !x.name) return false;
+        const xMeta = getPersonIdentifiers(x);
+        if (xMeta.id === pMeta.id) return false;
+        if (pMeta.nameKey && xMeta.nameKey === pMeta.nameKey) return false;
+        if (pMeta.liSlug && xMeta.liSlug && pMeta.liSlug === xMeta.liSlug) return false;
+        if (pMeta.igSlug && xMeta.igSlug && pMeta.igSlug === xMeta.igSlug) return false;
+        return true;
+      })
       .map(x => {
         const key = `${p.id}_${x.id}`;
         const revKey = `${x.id}_${p.id}`;

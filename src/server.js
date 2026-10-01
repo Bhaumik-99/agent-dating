@@ -111,7 +111,40 @@ app.post('/api/rank', async (req, res) => {
     const { people } = req.body || {};
     if (!Array.isArray(people) || people.length < 2)
       return res.status(400).json({ error: 'At least 2 analyzed people are required.' });
-    res.json({ rankings: rankPeople(people) });
+
+    // Deduplicate candidate array on server by ID, normalized name, LinkedIn slug, and Instagram slug
+    const seenIds = new Set();
+    const seenNames = new Set();
+    const seenLiSlugs = new Set();
+    const seenIgSlugs = new Set();
+    const cleanPeople = [];
+
+    for (const p of people) {
+      if (!p || !p.name) continue;
+      const id = String(p.id || '');
+      const nameKey = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const liSlug = (p.linkedin || '').match(/linkedin\.com\/in\/([^/?#]+)/i)?.[1]?.toLowerCase().replace(/[-_.]/g, '') || '';
+      const igSlug = (p.instagram || '').match(/instagram\.com\/([^/?#]+)/i)?.[1]?.toLowerCase().replace(/[-_.]/g, '') || '';
+
+      if (seenIds.has(id) ||
+          (nameKey && seenNames.has(nameKey)) ||
+          (liSlug && seenLiSlugs.has(liSlug)) ||
+          (igSlug && seenIgSlugs.has(igSlug))) {
+        continue;
+      }
+
+      seenIds.add(id);
+      if (nameKey) seenNames.add(nameKey);
+      if (liSlug) seenLiSlugs.add(liSlug);
+      if (igSlug) seenIgSlugs.add(igSlug);
+      cleanPeople.push(p);
+    }
+
+    if (cleanPeople.length < 2) {
+      return res.status(400).json({ error: 'At least 2 unique candidates are required for ranking.' });
+    }
+
+    res.json({ rankings: rankPeople(cleanPeople) });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

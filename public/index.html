@@ -1157,15 +1157,21 @@ function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function extractCanonicalSlug(url = '') {
-  const m = String(url).match(/linkedin\.com\/in\/([^/?#]+)/i) || String(url).match(/instagram\.com\/([^/?#]+)/i);
+function extractLiSlug(url = '') {
+  const m = String(url || '').match(/linkedin\.com\/in\/([^/?#]+)/i);
+  return m ? m[1].toLowerCase().replace(/[-_.]/g, '') : '';
+}
+
+function extractIgSlug(url = '') {
+  const m = String(url || '').match(/instagram\.com\/([^/?#]+)/i);
   return m ? m[1].toLowerCase().replace(/[-_.]/g, '') : '';
 }
 
 function sanitizePeople(list = []) {
   const seenIds = new Set();
   const seenNames = new Set();
-  const seenSlugs = new Set();
+  const seenLiSlugs = new Set();
+  const seenIgSlugs = new Set();
   const result = [];
 
   for (const p of list || []) {
@@ -1180,19 +1186,23 @@ function sanitizePeople(list = []) {
       continue;
     }
 
-    const liSlug = extractCanonicalSlug(p.linkedin);
-    const igSlug = extractCanonicalSlug(p.instagram);
+    const id = String(p.id || '');
+    const liSlug = extractLiSlug(p.linkedin);
+    const igSlug = extractIgSlug(p.instagram);
     const alphaName = nameLower.replace(/[^a-z0-9]/g, '');
 
     // Skip duplicates by ID, normalized Name, LinkedIn slug, or Instagram slug
-    if (seenIds.has(p.id) || seenNames.has(alphaName) || (liSlug && seenSlugs.has(liSlug))) {
+    if (seenIds.has(id) ||
+        (alphaName && seenNames.has(alphaName)) ||
+        (liSlug && seenLiSlugs.has(liSlug)) ||
+        (igSlug && seenIgSlugs.has(igSlug))) {
       continue;
     }
 
-    seenIds.add(p.id);
-    seenNames.add(alphaName);
-    if (liSlug) seenSlugs.add(liSlug);
-    if (igSlug) seenSlugs.add(igSlug);
+    seenIds.add(id);
+    if (alphaName) seenNames.add(alphaName);
+    if (liSlug) seenLiSlugs.add(liSlug);
+    if (igSlug) seenIgSlugs.add(igSlug);
 
     result.push(p);
   }
@@ -1499,9 +1509,22 @@ function populateDateSelects(preferredA, preferredB) {
   if (!selA || !selB) return;
 
   const currentA = preferredA || selA.value || state.selected || state.people[0]?.id;
+  const personA = state.people.find(p => p.id === currentA);
+  const aAlpha = (personA?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const aLi = extractLiSlug(personA?.linkedin);
+  const aIg = extractIgSlug(personA?.instagram);
 
-  // Candidate selected in Agent A is completely filtered out from Agent B options
-  const availableB = state.people.filter(p => p.id !== currentA);
+  // Candidate selected in Agent A is completely filtered out from Agent B options (by ID, Name, LinkedIn, IG)
+  const availableB = state.people.filter(p => {
+    if (p.id === currentA) return false;
+    const pAlpha = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (aAlpha && pAlpha === aAlpha) return false;
+    const pLi = extractLiSlug(p.linkedin);
+    if (aLi && pLi && aLi === pLi) return false;
+    const pIg = extractIgSlug(p.instagram);
+    if (aIg && pIg && aIg === pIg) return false;
+    return true;
+  });
 
   let currentB = preferredB || selB.value;
   if (!currentB || currentB === currentA || !availableB.some(p => p.id === currentB)) {
@@ -1820,12 +1843,19 @@ function renderRank(forPersonId) {
     </div>
   `;
 
+  const targetLi = extractLiSlug(targetPerson.linkedin);
+  const targetIg = extractIgSlug(targetPerson.instagram);
+
   const list = $('rankList');
   const rawRanks = state.rankings[personId] || [];
   const ranks = rawRanks.filter(r => {
     if (r.id === personId) return false;
     const rAlpha = (r.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (targetAlpha && rAlpha === targetAlpha) return false;
+    const rLi = extractLiSlug(r.linkedin);
+    if (targetLi && rLi && targetLi === rLi) return false;
+    const rIg = extractIgSlug(r.instagram);
+    if (targetIg && rIg && targetIg === rIg) return false;
     return true;
   });
 
@@ -2097,17 +2127,19 @@ $('analyzeBtn').onclick = async () => {
     const j = await r.json();
     if (!r.ok) { setMsg(j.error || 'Live analysis failed.', 'error'); return; }
 
-    const jName = String(j.name || '').trim().toLowerCase();
-    const jLi = String(j.linkedin || '').trim().toLowerCase().replace(/\/+$/, '');
-    const jIg = String(j.instagram || '').trim().toLowerCase().replace(/\/+$/, '');
+    const jName = (j.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const jLi = extractLiSlug(j.linkedin);
+    const jIg = extractIgSlug(j.instagram);
 
+    // Completely remove any pre-existing entry matching newly added candidate (by ID, Name, LinkedIn, or Instagram)
     const filtered = state.people.filter(p => {
       if (p.id === j.id) return false;
-      if (String(p.name || '').trim().toLowerCase() === jName) return false;
-      const pLi = String(p.linkedin || '').trim().toLowerCase().replace(/\/+$/, '');
-      if (jLi && pLi === jLi) return false;
-      const pIg = String(p.instagram || '').trim().toLowerCase().replace(/\/+$/, '');
-      if (jIg && pIg === jIg) return false;
+      const pName = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (jName && pName === jName) return false;
+      const pLi = extractLiSlug(p.linkedin);
+      if (jLi && pLi && jLi === pLi) return false;
+      const pIg = extractIgSlug(p.instagram);
+      if (jIg && pIg && jIg === pIg) return false;
       return true;
     });
 
@@ -2124,10 +2156,29 @@ $('analyzeBtn').onclick = async () => {
       const rj = await rr.json();
       state.rankings = rj.rankings || {};
 
+      // Defensive guarantee: Never allow any candidate to be matched with themselves or an alias
+      for (const pid of Object.keys(state.rankings)) {
+        const target = state.people.find(p => p.id === pid);
+        const targetAlpha = (target?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const targetLi = extractLiSlug(target?.linkedin);
+        const targetIg = extractIgSlug(target?.instagram);
+
+        state.rankings[pid] = (state.rankings[pid] || []).filter(item => {
+          if (item.id === pid) return false;
+          const itemAlpha = (item.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (targetAlpha && itemAlpha === targetAlpha) return false;
+          const itemLi = extractLiSlug(item.linkedin);
+          if (targetLi && itemLi && targetLi === itemLi) return false;
+          const itemIg = extractIgSlug(item.instagram);
+          if (targetIg && itemIg && targetIg === itemIg) return false;
+          return true;
+        });
+      }
+
       // Cache all simulated dates generated for the new candidate
       if (state.rankings[j.id]) {
         state.rankings[j.id].forEach(item => {
-          if (item.date && item.id) {
+          if (item.date && item.id && item.id !== j.id) {
             dateCache[`${j.id}_${item.id}`] = item.date;
             dateCache[`${item.id}_${j.id}`] = item.date;
           }
