@@ -45,11 +45,8 @@ export class DatingAgent {
 
     // Friction detection: divergent focus or pace
     const frictionPoints = [];
-    if (sharedInterests.length === 0) {
-      frictionPoints.push(`Divergent domain focuses (${myInterests[0] || 'general'} vs ${theirInterests[0] || 'general'})`);
-    }
-    if (myHobbies.length > 0 && theirHobbies.length === 0) {
-      frictionPoints.push('Asymmetry in public recreational activities');
+    if (sharedInterests.length === 0 && sharedHobbies.length === 0) {
+      frictionPoints.push(`Fundamentally divergent domain focuses (${myInterests[0] || 'general'} vs ${theirInterests[0] || 'general'})`);
     }
 
     return {
@@ -140,12 +137,12 @@ export class DatingAgent {
    * Finalizes individual decision for the agent.
    */
   finalizeDate(otherAgent, inspection, chemistryScore) {
-    if (chemistryScore >= 65 && inspection.frictionPoints.length === 0) {
+    if (chemistryScore >= 64 && inspection.frictionPoints.length === 0) {
       return {
         continue: true,
         reason: `Strong intellectual rapport on ${inspection.sharedInterests[0] || 'core vision'} and compatible operating tempo.`
       };
-    } else if (chemistryScore >= 50) {
+    } else if (chemistryScore >= 48) {
       return {
         continue: true,
         reason: `Promising shared curiosity on ${inspection.sharedInterests[0] || 'technology'}, worth a second focused conversation.`
@@ -163,12 +160,12 @@ export class DatingAgent {
    */
   scoreInteraction(inspection, proposalAccepted) {
     let score = 50;
-    score += Math.min(30, inspection.sharedInterests.length * 10);
-    score += Math.min(15, inspection.sharedHobbies.length * 8);
+    score += Math.min(26, inspection.sharedInterests.length * 13);
+    score += Math.min(16, inspection.sharedHobbies.length * 10);
     score += Math.min(10, inspection.workSynergy.length * 5);
-    if (proposalAccepted) score += 5;
-    score -= inspection.frictionPoints.length * 10;
-    return Math.max(35, Math.min(96, score));
+    if (proposalAccepted) score += 4;
+    score -= inspection.frictionPoints.length * 14;
+    return Math.max(28, Math.min(92, score));
   }
 }
 

@@ -53,36 +53,55 @@ function extractTokens(arr) {
 }
 
 function matchCategories(listA = [], listB = []) {
-  const A = extractTokens(listA);
-  const B = extractTokens(listB);
+  const arrA = (listA || []).filter(Boolean);
+  const arrB = (listB || []).filter(Boolean);
 
-  const sharedPhrases = [];
-  const sharedTokens = new Set();
+  if (!arrA.length || !arrB.length) {
+    return { rawScore: 18, hit: [] };
+  }
 
-  for (const pa of A.phrases) {
-    const la = pa.toLowerCase();
-    for (const pb of B.phrases) {
-      const lb = pb.toLowerCase();
-      if (la === lb || (la.length > 4 && lb.length > 4 && (la.includes(lb) || lb.includes(la)))) {
-        sharedPhrases.push(la.length < lb.length ? pa : pb);
+  // Exact or substantive item matches
+  const sharedItems = [];
+  for (const itemA of arrA) {
+    const cleanA = String(itemA).toLowerCase().trim();
+    for (const itemB of arrB) {
+      const cleanB = String(itemB).toLowerCase().trim();
+      if (cleanA === cleanB) {
+        sharedItems.push(itemA);
+      } else if (
+        cleanA.length > 5 && cleanB.length > 5 &&
+        (cleanA.includes(cleanB) || cleanB.includes(cleanA))
+      ) {
+        sharedItems.push(cleanA.length < cleanB.length ? itemA : itemB);
       }
     }
   }
 
-  for (const t of A.tokens) {
-    if (B.tokens.has(t)) {
-      sharedTokens.add(t);
-    }
+  const uniqueHits = Array.from(new Set(sharedItems));
+
+  // Token-level overlap for secondary nuance
+  const tokensA = extractTokens(arrA);
+  const tokensB = extractTokens(arrB);
+  let sharedTokensCount = 0;
+  for (const t of tokensA.tokens) {
+    if (tokensB.tokens.has(t)) sharedTokensCount++;
   }
 
-  const uniqueShared = Array.from(new Set([...sharedPhrases, ...sharedTokens]));
-  const baseSize = Math.max(1, Math.min(A.tokens.size, B.tokens.size));
-  const rawRatio = sharedTokens.size / baseSize;
-  const rawScore = Math.min(100, Math.round(rawRatio * 100));
+  // Calibrated score curve (15% to 92%)
+  let score = 20;
+  if (uniqueHits.length >= 3) {
+    score = 84 + Math.min(6, (uniqueHits.length - 2) * 2);
+  } else if (uniqueHits.length === 2) {
+    score = 72 + Math.min(8, sharedTokensCount * 2);
+  } else if (uniqueHits.length === 1) {
+    score = 54 + Math.min(10, sharedTokensCount * 2);
+  } else {
+    score = Math.min(36, 16 + sharedTokensCount * 3);
+  }
 
   return {
-    rawScore,
-    hit: uniqueShared.slice(0, 5)
+    rawScore: Math.min(92, Math.max(15, score)),
+    hit: uniqueHits
   };
 }
 
@@ -96,23 +115,23 @@ export function compatibility(personA, personB, existingDate = null) {
   const s = matchCategories(personA.profile?.social_style, personB.profile?.social_style);
   const n = matchCategories(personA.profile?.needs, personB.profile?.needs);
 
-  // 1. Dimensional scores (0-100)
-  const scoreInterests = Math.min(100, Math.round(i.rawScore * 2.8 + (i.hit.length > 0 ? 35 : 10)));
-  const scoreHobbies = Math.min(100, Math.round(h.rawScore * 2.8 + (h.hit.length > 0 ? 30 : 10)));
-  const scoreNeeds = Math.min(100, Math.round(n.rawScore * 2.5 + (n.hit.length > 0 ? 30 : 10)));
-  const scoreWork = Math.min(100, Math.round(w.rawScore * 2.5 + (w.hit.length > 0 ? 30 : 15)));
-  const scoreSocial = Math.min(100, Math.round(s.rawScore * 2.5 + (s.hit.length > 0 ? 25 : 15)));
+  // 1. Dimensional scores (calibrated 0-100)
+  const scoreInterests = i.rawScore;
+  const scoreHobbies = h.rawScore;
+  const scoreNeeds = n.rawScore;
+  const scoreWork = w.rawScore;
+  const scoreSocial = s.rawScore;
 
   // 2. Simulated agent date execution or lookup
   const date = existingDate || simulateAgentDate(personA, personB);
 
   // 3. Date proposal & outcome evaluations
-  const proposalScore = Math.min(100, 60 + (i.hit.length > 0 ? 20 : 0) + (h.hit.length > 0 ? 20 : 0));
+  const proposalScore = Math.min(90, 40 + (i.hit.length > 0 ? 25 : 0) + (h.hit.length > 0 ? 25 : 0));
   const dateChemistry = date.chemistry_score || 50;
   const decisionA = date.decision_a?.continue ?? true;
   const decisionB = date.decision_b?.continue ?? true;
   const mutualContinue = decisionA && decisionB;
-  const decisionBonus = mutualContinue ? 8 : (decisionA || decisionB ? -4 : -12);
+  const decisionBonus = mutualContinue ? 4 : (decisionA || decisionB ? -4 : -8);
 
   // 4. Weighted transparent score calculation:
   // Interests 25%, Hobbies 15%, Needs 15%, Work/Lifestyle 15%, Social 10%, Proposal 5%, Date Outcome 15%
@@ -125,14 +144,14 @@ export function compatibility(personA, personB, existingDate = null) {
     (proposalScore * 0.05) +
     (dateChemistry * 0.15);
 
-  const finalScore = Math.round(Math.min(99, Math.max(15, weighted + decisionBonus)) * 10) / 10;
+  const finalScore = Math.round(Math.min(92, Math.max(18, weighted + decisionBonus)));
 
   // 5. Reasons compilation
   const reasons = [
-    ...i.hit.slice(0, 2).map(x => `Shared interest: ${x}`),
-    ...h.hit.slice(0, 1).map(x => `Shared hobby: ${x}`),
-    ...n.hit.slice(0, 1).map(x => `Aligned need: ${x}`),
-    ...w.hit.slice(0, 1).map(x => `Work style: ${x}`),
+    ...(i.hit.length ? i.hit.slice(0, 2).map(x => `Shared interest: ${x}`) : ['Distinct primary industry domain']),
+    ...(h.hit.length ? h.hit.slice(0, 1).map(x => `Shared hobby: ${x}`) : ['Diverse recreational pursuits']),
+    ...(n.hit.length ? n.hit.slice(0, 1).map(x => `Aligned need: ${x}`) : ['Divergent connection style']),
+    ...(w.hit.length ? w.hit.slice(0, 1).map(x => `Work style: ${x}`) : []),
     `Date outcome: ${dateChemistry}/100 chemistry (${mutualContinue ? 'Mutual 2nd date' : 'Single/mixed decision'})`
   ];
 

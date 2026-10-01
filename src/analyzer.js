@@ -12,55 +12,56 @@
  */
 
 // ── TAXONOMY & SYNONYM DICTIONARY ───────────────────────────────────────────
+// ── TAXONOMY & SYNONYM DICTIONARY (STRICT DOMAIN DISTINCTIONS) ─────────────
 const TAXONOMY = {
   interests: [
-    { label: 'Artificial Intelligence & Machine Learning', keywords: ['artificial intelligence', 'ai', 'machine learning', 'deep learning', 'neural', 'agents', 'copilot', 'llm', 'computer vision', 'imagenet', 'robotics'], category: 'tech' },
-    { label: 'Startups & Venture Capital', keywords: ['startup', 'startups', 'entrepreneur', 'founder', 'co-founder', 'venture capital', 'investor', 'angel investing', 'seed funding', 'shark tank', 'portfolio'], category: 'business' },
-    { label: 'Enterprise Software & Cloud Platforms', keywords: ['enterprise', 'cloud', 'saas', 'developer tools', 'infrastructure', 'platform', 'distributed systems', 'open source', 'apis', 'software engineering'], category: 'tech' },
-    { label: 'Fintech & Capital Markets', keywords: ['fintech', 'trading', 'markets', 'brokerage', 'payments', 'stablecoins', 'crypto', 'financial', 'wealth'], category: 'finance' },
-    { label: 'Healthcare & Life Sciences', keywords: ['healthcare', 'health', 'biomedical', 'neuroscience', 'pharma', 'life sciences', 'pharmaceuticals', 'medicine', 'longevity'], category: 'health' },
-    { label: 'Consumer Brands & E-commerce', keywords: ['ecommerce', 'd2c', 'consumer', 'retail', 'eyewear', 'cosmetics', 'apparel', 'direct to consumer', 'omnichannel'], category: 'commerce' },
-    { label: 'Hospitality & Travel', keywords: ['hospitality', 'hotel', 'hotels', 'travel', 'accommodations', 'stay', 'tourism'], category: 'lifestyle' },
-    { label: 'Automotive & Clean Mobility', keywords: ['automotive', 'mobility', 'electric vehicles', 'ev', 'battery', 'cars', 'cardekho', 'ola'], category: 'mobility' },
-    { label: 'Education & Knowledge Sharing', keywords: ['education', 'learning', 'teaching', 'coursera', 'course', 'curriculum', 'mentorship', 'author', 'book', 'bestseller'], category: 'education' },
-    { label: 'Product Design & Creative Taste', keywords: ['product design', 'taste', 'philosophy', 'design', 'user experience', 'ux', 'ui', 'creative direction', 'craftsmanship'], category: 'creative' }
+    { label: 'Artificial Intelligence & Machine Learning', keywords: ['artificial intelligence', 'machine learning', 'deep learning', 'neural net', 'autonomous agents', 'copilot', 'llm', 'computer vision', 'imagenet', 'robotics', 'generative ai', 'krutrim', 'world labs', 'anthropic'], category: 'tech' },
+    { label: 'Startups & Venture Capital', keywords: ['venture capital', 'angel investor', 'seed funding', 'shark tank', 'portfolio company', 'surge', 'peak xv', 'titan capital', 'early-stage', 'accelerator'], category: 'business' },
+    { label: 'Enterprise Software & Cloud Platforms', keywords: ['enterprise software', 'cloud platform', 'saas', 'developer tools', 'infrastructure', 'distributed systems', 'open source software', 'apis', 'hubspot', 'microsoft', 'google cloud'], category: 'tech' },
+    { label: 'Fintech & Capital Markets', keywords: ['fintech', 'brokerage', 'trading platform', 'capital markets', 'payments infrastructure', 'stablecoins', 'crypto', 'wealth management', 'zerodha', 'true beacon', 'stripe'], category: 'finance' },
+    { label: 'Healthcare & Life Sciences', keywords: ['healthcare', 'biomedical', 'neuroscience', 'pharma', 'life sciences', 'pharmaceuticals', 'medicine', 'longevity', 'emcure'], category: 'health' },
+    { label: 'Consumer Brands & E-commerce', keywords: ['ecommerce', 'd2c', 'consumer brand', 'cosmetics', 'apparel', 'direct to consumer', 'omnichannel', 'eyewear', 'lenskart', 'nykaa', 'sugar cosmetics', 'boat lifestyle', 'zomato', 'blinkit', 'snapdeal'], category: 'commerce' },
+    { label: 'Hospitality & Travel', keywords: ['hospitality', 'hotel chain', 'travel accommodations', 'tourism', 'airbnb', 'oyo rooms', 'stays'], category: 'lifestyle' },
+    { label: 'Automotive & Clean Mobility', keywords: ['clean mobility', 'electric vehicle', 'electric vehicles', 'ola electric', 'cardekho', 'automotive industry', 'battery tech'], category: 'mobility' },
+    { label: 'Education & Knowledge Sharing', keywords: ['coursera', 'curriculum', 'higher education', 'teaching', 'pedagogy', 'deeplearning.ai', 'education platform', 'stanford professor', 'do epic shit'], category: 'education' },
+    { label: 'Product Design & Creative Taste', keywords: ['product design', 'creative direction', 'industrial design', 'user experience design', 'design philosophy', 'craftsmanship', 'artifact'], category: 'creative' }
   ],
 
   hobbies: [
-    { label: 'Long-Distance Running & Marathons', keywords: ['running', 'marathon', 'half-marathon', '5k', '10k', 'trail running', 'jogging', 'runner'] },
+    { label: 'Long-Distance Running & Marathons', keywords: ['marathon', 'half-marathon', 'trail running', 'ultramarathon', '5k runner', '10k runner', 'ironman'] },
     { label: 'Cricket', keywords: ['cricket', 'ipl', 'test match', 'batsman', 'bowler'] },
-    { label: 'Football / Soccer', keywords: ['football', 'soccer', 'barça', 'barcelona', 'fifa', 'champions league'] },
-    { label: 'Photography', keywords: ['photography', 'camera', 'photo', 'landscape photography', 'street photography'] },
-    { label: 'Specialty Coffee', keywords: ['coffee', 'specialty coffee', 'espresso', 'pourover', 'barista', 'roastery'] },
-    { label: 'Writing & Publishing', keywords: ['author', 'writing', 'wrote a book', 'bestseller', 'newsletter', 'essays'] },
-    { label: 'Reading & Philosophy', keywords: ['reading', 'books', 'philosophy', 'meditation', 'stoicism', 'thinker', 'wisdom'] },
-    { label: 'Outdoor Exploration & Hiking', keywords: ['hiking', 'mountains', 'nature', 'outdoors', 'trekking', 'trail'] },
-    { label: 'Sports & Athletic Training', keywords: ['fitness', 'workout', 'gym', 'training', 'athletics', 'endurance'] }
+    { label: 'Football / Soccer', keywords: ['barça', 'barcelona', 'soccer match', 'premier league', 'champions league'] },
+    { label: 'Photography', keywords: ['landscape photography', 'street photography', 'amateur photographer', 'leica camera', 'photo walk'] },
+    { label: 'Specialty Coffee', keywords: ['specialty coffee', 'espresso enthusiast', 'pourover tasting', 'coffee roasting', 'barista craft'] },
+    { label: 'Writing & Publishing', keywords: ['bestselling author', 'newsletter essays', 'annual letter', 'published book', 'author of'] },
+    { label: 'Reading & Philosophy', keywords: ['stoicism', 'philosophy', 'meditation practice', 'avid reader', 'wisdom traditions'] },
+    { label: 'Outdoor Exploration & Hiking', keywords: ['mountaineering', 'trekking trails', 'alpine hiking', 'backpacking'] },
+    { label: 'Sports & Athletic Training', keywords: ['jiu-jitsu', 'hydrofoil', 'crossfit', 'strength training', 'athletic training', 'fitness regime'] }
   ],
 
   qualities: [
-    { label: 'Mission-driven', keywords: ['mission', 'empower', 'purpose', 'impact', 'planet', 'future'] },
-    { label: 'Technical rigor', keywords: ['engineer', 'engineering', 'science', 'rigor', 'infrastructure', 'research', 'fundamentals'] },
-    { label: 'Visionary builder', keywords: ['build', 'builder', 'creating', 'pioneer', 'inventor', 'transforming', 'revolutionizing'] },
-    { label: 'Analytical & strategic', keywords: ['strategy', 'decades', 'quarters', 'scaling', 'analysis', 'disciplined', 'metrics'] },
-    { label: 'Direct & transparent', keywords: ['honest', 'transparent', 'skip the cold email', 'unvarnished', 'direct', 'straightforward'] },
-    { label: 'High agency & gritty', keywords: ['grit', 'resilience', 'persistent', 'bootstrapped', 'relentless', 'hustle'] }
+    { label: 'Mission-driven', keywords: ['mission', 'empower every person', 'purpose', 'planet to achieve'] },
+    { label: 'Technical rigor', keywords: ['engineering rigor', 'computer science', 'distributed systems', 'infrastructure scale'] },
+    { label: 'Visionary builder', keywords: ['pioneering', 'inventor', 'transforming the industry', 'generational company'] },
+    { label: 'Analytical & strategic', keywords: ['decades, executing in quarters', 'disciplined capital', 'strategic moat'] },
+    { label: 'Direct & transparent', keywords: ['unvarnished', 'transparent culture', 'radical candor', 'direct feedback'] },
+    { label: 'High agency & gritty', keywords: ['bootstrapped resilience', 'relentless execution', 'grit'] }
   ],
 
   work_styles: [
-    { label: 'Founder-led execution', keywords: ['founder', 'co-founder', 'ceo', 'build', 'venture', 'bootstrapped'] },
-    { label: 'Long-term strategic vision', keywords: ['decades', 'future', 'strategy', 'frontier', 'ecosystem', 'transformation'] },
-    { label: 'Deep technical craftsmanship', keywords: ['engineering', 'code', 'research', 'paper', 'architecture', 'cli'] },
-    { label: 'Data-driven and metrics-focused', keywords: ['metrics', 'data', 'kpi', 'revenue', 'financials', 'results'] },
-    { label: 'Community-oriented mentorship', keywords: ['mentor', 'angel', 'community', 'supporting', 'empower', 'giving back'] }
+    { label: 'Founder-led execution', keywords: ['founder', 'co-founder', 'bootstrapped', 'zero to one'] },
+    { label: 'Long-term strategic vision', keywords: ['thinking in decades', 'generational vision', 'positive-sum future', 'ecosystem scale'] },
+    { label: 'Deep technical craftsmanship', keywords: ['software craftsmanship', 'code architecture', 'technical depth'] },
+    { label: 'Data-driven and metrics-focused', keywords: ['unit economics', 'financial discipline', 'metrics-driven'] },
+    { label: 'Community-oriented mentorship', keywords: ['mentoring founders', 'angel investor', 'giving back to founders', 'startup ecosystem'] }
   ],
 
   social_styles: [
-    { label: 'Thoughtful long-form communication', keywords: ['letter', 'newsletter', 'article', 'essay', 'annual letter', 'published'] },
-    { label: 'Direct and unvarnished conversation', keywords: ['direct', 'honest', 'skip the pleasantries', 'straight to the point'] },
-    { label: 'Public thought-leader and educator', keywords: ['author', 'speaker', 'teaching', 'creator', 'podcast', 'lecture'] },
-    { label: 'Subtle and private presence', keywords: ['quiet', '0 posts', 'minimal', 'reserved'] },
-    { label: 'Enthusiastic and community-engaged', keywords: ['shark', 'cheering', 'collaborative', 'energizing', 'passion'] }
+    { label: 'Thoughtful long-form communication', keywords: ['annual letter', 'in-depth essays', 'published articles', 'long-form'] },
+    { label: 'Direct and unvarnished conversation', keywords: ['unvarnished conversation', 'skip the pleasantries', 'straight talk'] },
+    { label: 'Public thought-leader and educator', keywords: ['keynote speaker', 'educator', 'podcast host', 'public lectures'] },
+    { label: 'Subtle and private presence', keywords: ['0 posts', 'low-key presence', 'private profile', 'reserved'] },
+    { label: 'Enthusiastic and community-engaged', keywords: ['shark tank investor', 'cheering founders', 'energizing presence'] }
   ]
 };
 
@@ -69,6 +70,33 @@ function cleanText(text = '') {
   return String(text || '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function sanitizeBodyText(text = '') {
+  return String(text || '')
+    .replace(/see instagram photos and videos/gi, ' ')
+    .replace(/photos and videos from/gi, ' ')
+    .replace(/remove photo email password/gi, ' ')
+    .replace(/\b\d+ followers, \d+ following, \d+ posts\b/gi, ' ')
+    .replace(/sign in with email or new to linkedin/gi, ' ')
+    .replace(/user agreement, privacy policy, and cookie policy/gi, ' ')
+    .replace(/"@type":\s*"Article",\s*"author":\s*\{"@type":\s*"Person"/gi, ' ')
+    .replace(/manage your professional identity/gi, ' ')
+    .replace(/build and engage with your professional network/gi, ' ')
+    .replace(/access knowledge, insights and opportunities/gi, ' ')
+    .replace(/don't have the app\? get it in the microsoft store/gi, ' ')
+    .replace(/by clicking continue to join or sign in/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function matchesKeyword(text, keyword) {
+  const kw = keyword.toLowerCase();
+  if (kw.length <= 4) {
+    const rx = new RegExp(`\\b${kw}\\b`, 'i');
+    return rx.test(text);
+  }
+  return text.includes(kw);
 }
 
 function splitSentences(text = '') {
@@ -83,7 +111,7 @@ function findEvidenceSentence(sentences, keywords, sourceLabel) {
   for (const sentence of sentences) {
     const lower = sentence.toLowerCase();
     for (const kw of keywords) {
-      if (lower.includes(kw)) {
+      if (matchesKeyword(lower, kw)) {
         return `[${sourceLabel}] "${sentence.slice(0, 180).trim()}"`;
       }
     }
@@ -98,7 +126,7 @@ export function analyzePersonLocally(person) {
 
   const liClean = cleanText(liRaw);
   const igClean = cleanText(igRaw);
-  const combinedLower = `${liClean} ${igClean}`.toLowerCase();
+  const sanitizedLower = sanitizeBodyText(`${liClean} ${igClean}`).toLowerCase();
 
   const liSentences = splitSentences(liClean);
   const igSentences = splitSentences(igClean);
@@ -152,7 +180,7 @@ export function analyzePersonLocally(person) {
   // 4. EXTRACT INTERESTS
   const interests = [];
   for (const item of TAXONOMY.interests) {
-    const matched = item.keywords.filter(k => combinedLower.includes(k));
+    const matched = item.keywords.filter(k => matchesKeyword(sanitizedLower, k));
     if (matched.length > 0) {
       interests.push(item.label);
       // Try to find sentence evidence
@@ -167,7 +195,7 @@ export function analyzePersonLocally(person) {
   // 5. EXTRACT HOBBIES
   const hobbies = [];
   for (const item of TAXONOMY.hobbies) {
-    const matched = item.keywords.filter(k => combinedLower.includes(k));
+    const matched = item.keywords.filter(k => matchesKeyword(sanitizedLower, k));
     if (matched.length > 0) {
       hobbies.push(item.label);
       const ev = findEvidenceSentence(igSentences, matched, 'Instagram') || findEvidenceSentence(liSentences, matched, 'LinkedIn');
@@ -178,7 +206,7 @@ export function analyzePersonLocally(person) {
   // 6. EXTRACT QUALITIES
   const qualities = [];
   for (const item of TAXONOMY.qualities) {
-    if (item.keywords.some(k => combinedLower.includes(k))) {
+    if (item.keywords.some(k => matchesKeyword(sanitizedLower, k))) {
       qualities.push(item.label);
     }
   }
@@ -187,7 +215,7 @@ export function analyzePersonLocally(person) {
   // 7. EXTRACT WORK STYLE
   const workStyle = [];
   for (const item of TAXONOMY.work_styles) {
-    if (item.keywords.some(k => combinedLower.includes(k))) {
+    if (item.keywords.some(k => matchesKeyword(sanitizedLower, k))) {
       workStyle.push(item.label);
     }
   }
@@ -196,7 +224,7 @@ export function analyzePersonLocally(person) {
   // 8. EXTRACT SOCIAL STYLE
   const socialStyle = [];
   for (const item of TAXONOMY.social_styles) {
-    if (item.keywords.some(k => combinedLower.includes(k))) {
+    if (item.keywords.some(k => matchesKeyword(sanitizedLower, k))) {
       socialStyle.push(item.label);
     }
   }
@@ -229,21 +257,50 @@ export function analyzePersonLocally(person) {
     );
   }
 
-  // 10. DERIVE GROUNDED CONNECTION NEEDS
+  // 10. DERIVE GROUNDED CONNECTION NEEDS (Diversified & Source-Grounded)
   const needs = [];
   if (interests.some(i => i.includes('Artificial Intelligence') || i.includes('Enterprise'))) {
     needs.push('High-bandwidth intellectual exchange on systemic technology trends');
   }
-  if (hobbies.length > 0) {
-    needs.push('An active partner who values shared physical and creative pursuits');
-  }
-  if (interests.some(i => i.includes('Startups'))) {
+  if (interests.some(i => i.includes('Startups') || i.includes('Venture Capital'))) {
     needs.push('Mutual appreciation for entrepreneurial momentum and disciplined execution');
+  }
+  if (interests.some(i => i.includes('Healthcare') || i.includes('Life Sciences'))) {
+    needs.push('Shared purpose around healthcare, science, and life sciences impact');
+  }
+  if (interests.some(i => i.includes('Fintech') || i.includes('Capital Markets'))) {
+    needs.push('Strategic acumen in fintech, capital markets, and macro systems');
+  }
+  if (interests.some(i => i.includes('Consumer Brands') || i.includes('E-commerce'))) {
+    needs.push('Creative appreciation for consumer culture, product taste, and design');
+  }
+  if (interests.some(i => i.includes('Education') || i.includes('Knowledge Sharing'))) {
+    needs.push('Commitment to education, open knowledge sharing, and mentorship');
+  }
+  if (interests.some(i => i.includes('Hospitality') || i.includes('Travel'))) {
+    needs.push('Experiential curiosity for travel, culture, and hospitality');
+  }
+  if (interests.some(i => i.includes('Automotive') || i.includes('Clean Mobility'))) {
+    needs.push('Enthusiasm for sustainable mobility, clean technology, and physical engineering');
+  }
+  if (hobbies.some(h => h.includes('Running') || h.includes('Cricket') || h.includes('Football') || h.includes('Athletic'))) {
+    needs.push('An active partner who values fitness, endurance, and shared sports');
+  }
+  if (hobbies.some(h => h.includes('Photography') || h.includes('Writing') || h.includes('Reading'))) {
+    needs.push('Creative reflection through writing, photography, and intellectual discourse');
+  }
+  if (hobbies.some(h => h.includes('Coffee'))) {
+    needs.push('Appreciation for artisan craft, relaxed café rhythms, and focused dialogue');
+  }
+  if (socialStyle.some(s => s.includes('Subtle and private'))) {
+    needs.push('A grounded, low-key private dynamic protected from public spotlight');
+  }
+  if (socialStyle.some(s => s.includes('Direct and unvarnished'))) {
+    needs.push('Direct, transparent communication without social posturing');
   }
   if (!needs.length) {
     needs.push('Authentic connection built around grounded mutual curiosity');
   }
-  needs.push('Specificity — concrete shared activities over generic social meetings');
 
   // 11. SYNTHESIZE GROUNDED SUMMARY
   let summary = '';
