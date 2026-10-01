@@ -65,7 +65,24 @@ app.post('/api/analyze', async (req, res) => {
     ]);
     console.log(`[analyze] Scraped. LinkedIn: ${li.text.length}ch, Instagram: ${ig.text.length}ch`);
 
-    const p = createPerson(`live-${Date.now()}`, name, li.url, ig.url);
+    let cleanName = String(name || '').trim();
+    const isInvalidName = !cleanName ||
+      /grounded in public evidence/i.test(cleanName) ||
+      /evaluated through dialogue/i.test(cleanName) ||
+      /protocol specification/i.test(cleanName) ||
+      cleanName.length > 60;
+
+    if (isInvalidName) {
+      const slugMatch = linkedin.match(/\/in\/([a-zA-Z0-9_-]+)/);
+      if (slugMatch && slugMatch[1]) {
+        cleanName = slugMatch[1].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
+      } else {
+        const titleMatch = (li.text || '').match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+        cleanName = titleMatch ? titleMatch[1].trim() : 'Verified Candidate';
+      }
+    }
+
+    const p = createPerson(`live-${Date.now()}`, cleanName, li.url, ig.url);
     p.sources.linkedin = li;
     p.sources.instagram = ig;
     p.profile = await analyzePerson(p);
@@ -75,11 +92,11 @@ app.post('/api/analyze', async (req, res) => {
       .replace(/^title:\s*/i, '')
       .replace(/\|.*$/i, '')
       .replace(/–.*$/i, '')
-      .replace(new RegExp(`^${name}\\s*[-–—:]*\\s*`, 'i'), '')
+      .replace(new RegExp(`^${cleanName}\\s*[-–—:]*\\s*`, 'i'), '')
       .trim();
     p.verified_role = cleanRole || 'Verified Candidate';
 
-    console.log(`[analyze] Done: ${name} (${p.verified_role})`);
+    console.log(`[analyze] Done: ${cleanName} (${p.verified_role})`);
 
     res.json(p);
   } catch (e) {

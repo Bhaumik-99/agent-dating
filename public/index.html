@@ -1045,12 +1045,14 @@ input.invalid { border-color: rgba(248, 113, 113, 0.6) !important; }
         <div class="quick-prefill-bar">
           <span class="quick-lbl">One-Click Test Candidates:</span>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Satya Nadella', 'https://www.linkedin.com/in/satyanadella/', 'https://www.instagram.com/satyanadella/')">Satya Nadella</button>
+          <button type="button" class="prefill-chip" onclick="prefillCandidate('Gary Vaynerchuk', 'https://www.linkedin.com/in/garyvaynerchuk/', 'https://www.instagram.com/garyvee/')">Gary Vaynerchuk</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Sam Altman', 'https://www.linkedin.com/in/sama/', 'https://www.instagram.com/sama/')">Sam Altman</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Garry Tan', 'https://www.linkedin.com/in/garrytan/', 'https://www.instagram.com/garrytan/')">Garry Tan</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Ghazal Alagh', 'https://www.linkedin.com/in/ghazal-alagh/', 'https://www.instagram.com/ghazalalagh/')">Ghazal Alagh</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Dharmesh Shah', 'https://www.linkedin.com/in/dharmesh/', 'https://www.instagram.com/dharmeshshah/')">Dharmesh Shah</button>
           <button type="button" class="prefill-chip" onclick="prefillCandidate('Vineeta Singh', 'https://www.linkedin.com/in/vineetasingh/', 'https://www.instagram.com/vineetasng/')">Vineeta Singh</button>
-          <button type="button" class="prefill-chip" onclick="clearLiveForm()">Clear Form</button>
+          <button type="button" class="prefill-chip" onclick="clearLiveForm()">Clear</button>
+          <button type="button" class="prefill-chip" style="color:var(--warn);border-color:rgba(239,68,68,0.4);" onclick="resetDemo()">↺ Reset Clean 25</button>
         </div>
 
         <div class="live-form-grid">
@@ -1153,6 +1155,26 @@ const miniTags = (xs = []) => xs.slice(0, 2).map(x => `<span class="tag-chip">${
 
 function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function sanitizePeople(list = []) {
+  return (list || []).filter(p => {
+    if (!p || !p.name) return false;
+    const n = String(p.name).trim().toLowerCase();
+    if (n.includes('grounded in public evidence') ||
+        n.includes('evaluated through dialogue') ||
+        n.includes('protocol specification')) {
+      return false;
+    }
+    return true;
+  });
+}
+
+async function resetDemo() {
+  dateCache = {};
+  setMsg('Resetting candidate directory to pristine 25-figure benchmark…', 'loading');
+  await loadDemoData(true);
+  setMsg('✓ Reset complete: Loaded clean 25-person demo dataset.', 'success');
 }
 
 function toggleLiveForm(open = null) {
@@ -1450,7 +1472,7 @@ function populateDateSelects(preferredA, preferredB) {
 
   if (!currentB || currentB === currentA) {
     const rankList = state.rankings[currentA] || [];
-    currentB = rankList[0]?.id || state.people.find(p => p.id !== currentA)?.id || state.people[1]?.id;
+    currentB = rankList.find(r => r.id !== currentA)?.id || state.people.find(p => p.id !== currentA)?.id || state.people[1]?.id;
   }
 
   selA.innerHTML = state.people.map(p =>
@@ -1458,22 +1480,63 @@ function populateDateSelects(preferredA, preferredB) {
   ).join('');
 
   selB.innerHTML = state.people.map(p =>
-    `<option value="${esc(p.id)}" ${p.id === currentB ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})</option>`
+    `<option value="${esc(p.id)}" ${p.id === currentB ? 'selected' : ''} ${p.id === currentA ? 'disabled style="opacity:0.45;"' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Agent')})${p.id === currentA ? ' — [Active as Agent A]' : ''}</option>`
   ).join('');
 
   selA.value = currentA;
   selB.value = currentB;
 
   selA.onchange = () => {
-    const a = state.people.find(p => p.id === selA.value);
-    const b = state.people.find(p => p.id === selB.value);
-    if (a && b && a.id !== b.id) runDate(a, b);
+    const aId = selA.value;
+    let bId = selB.value;
+    if (bId === aId) {
+      bId = state.people.find(p => p.id !== aId)?.id;
+    }
+    populateDateSelects(aId, bId);
+    triggerDateSimulation();
   };
+
   selB.onchange = () => {
-    const a = state.people.find(p => p.id === selA.value);
-    const b = state.people.find(p => p.id === selB.value);
-    if (a && b && a.id !== b.id) runDate(a, b);
+    const aId = selA.value;
+    const bId = selB.value;
+    if (bId === aId) {
+      setMsg('Please select two distinct candidate agents to simulate a date.', 'warn');
+      return;
+    }
+    triggerDateSimulation();
   };
+}
+
+async function triggerDateSimulation() {
+  const selA = $('dateSelectA');
+  const selB = $('dateSelectB');
+  const btn = $('startDateBtn');
+  if (!selA || !selB) return;
+
+  const aId = selA.value;
+  const bId = selB.value;
+  if (!aId || !bId || aId === bId) {
+    setMsg('Please select two distinct candidate agents to simulate a date.', 'warn');
+    return;
+  }
+
+  const a = state.people.find(p => p.id === aId);
+  const b = state.people.find(p => p.id === bId);
+  if (!a || !b) return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="width:13px;height:13px;display:inline-block;vertical-align:middle;margin-right:6px;"></span> Simulating…`;
+  }
+
+  try {
+    await runDate(a, b);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `Simulate Date Dialogue →`;
+    }
+  }
 }
 
 function renderDateSelector(preselectA, preselectB) {
@@ -1499,9 +1562,8 @@ function renderDateSelector(preselectA, preselectB) {
       <div id="dateOutput"></div>
     `;
     $('startDateBtn').onclick = () => {
-      const a = state.people.find(p => p.id === $('dateSelectA').value);
-      const b = state.people.find(p => p.id === $('dateSelectB').value);
-      if (a && b && a.id !== b.id) runDate(a, b);
+      triggerDateSimulation();
+      $('dateOutput')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
   }
 
@@ -1512,7 +1574,7 @@ function renderDateSelector(preselectA, preselectB) {
   if (a && b && a.id !== b.id) {
     const output = $('dateOutput');
     if (output && (!output.children.length || preselectA)) {
-      runDate(a, b);
+      triggerDateSimulation();
     }
   }
 }
@@ -1565,6 +1627,9 @@ async function runDate(a, b) {
       output.innerHTML = `<div class="empty-state"><div class="empty-title">Simulation Failed</div><div class="empty-desc">${esc(e.message)}</div></div>`;
       return;
     }
+  } else {
+    // Micro-delay for visual responsiveness
+    await new Promise(res => setTimeout(res, 120));
   }
 
   renderDateOutput(a, b, dateData, output);
@@ -1941,7 +2006,7 @@ async function loadDemoData(shouldScroll = false) {
     const r = await fetch('/api/demo');
     if (!r.ok) throw new Error('Demo dataset retrieval failed');
     const j = await r.json();
-    state.people = j.people || [];
+    state.people = sanitizePeople(j.people || []);
     state.rankings = j.rankings || {};
     if (j.dates) Object.assign(dateCache, j.dates);
     if (j.sampleDates) Object.assign(dateCache, j.sampleDates);
@@ -1992,11 +2057,11 @@ $('analyzeBtn').onclick = async () => {
     const j = await r.json();
     if (!r.ok) { setMsg(j.error || 'Live analysis failed.', 'error'); return; }
 
-    state.people = [...state.people.filter(p => p.id !== j.id), j];
+    state.people = sanitizePeople([...state.people.filter(p => p.id !== j.id), j]);
     state.selected = j.id;
 
     if (state.people.length >= 2) {
-      setMsg(`Simulating live agent dates and re-ranking for ${name}…`, 'loading');
+      setMsg(`Simulating live agent dates and re-ranking for ${j.name}…`, 'loading');
       const rr = await fetch('/api/rank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2022,7 +2087,7 @@ $('analyzeBtn').onclick = async () => {
     renderRank(j.id);
     const topMatch = state.rankings[j.id]?.[0]?.id;
     renderDateSelector(j.id, topMatch);
-    setMsg(`✓ Live agent active for ${name}! Grounded profile dossier generated. Proceed to Agent Dating and Final Rankings below.`, 'success');
+    setMsg(`✓ Live agent active for ${j.name}! Grounded profile dossier generated. Proceed to Agent Dating and Final Rankings below.`, 'success');
     activate('profile');
     $('mainWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
