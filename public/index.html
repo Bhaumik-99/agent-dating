@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Agentic Dating — Autonomous Agent Matchmaking</title>
 <meta name="description" content="Local autonomous agents represent real people, analyze strictly two public sources (LinkedIn & Instagram), simulate grounded dates, and rank compatibility.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1224,10 +1227,34 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
 function filterCandidates(val = '') {
   const q = String(val).toLowerCase().trim();
   const cards = document.querySelectorAll('.person-card');
+  let matchCount = 0;
+  let firstMatchName = '';
   cards.forEach(card => {
     const text = card.textContent.toLowerCase();
-    card.style.display = (!q || text.includes(q)) ? 'flex' : 'none';
+    const matches = (!q || text.includes(q));
+    card.style.display = matches ? 'flex' : 'none';
+    if (matches) {
+      matchCount++;
+      if (!firstMatchName) {
+        firstMatchName = card.querySelector('.person-name')?.textContent || '';
+      }
+    }
   });
+
+  const titleEl = $('directoryTitle');
+  const subEl = $('directorySub');
+  if (titleEl) {
+    if (!q) {
+      titleEl.textContent = `${state.people.length} Verified Public Figures`;
+      if (subEl) subEl.textContent = 'Each candidate represented by an autonomous agent reading strictly two public sources: LinkedIn and Instagram.';
+    } else if (matchCount === 1) {
+      titleEl.textContent = `Agent: ${firstMatchName}`;
+      if (subEl) subEl.textContent = `Autonomous agent profile and dating model active for ${firstMatchName}.`;
+    } else {
+      titleEl.textContent = `${matchCount} Matching Agents for "${val}"`;
+      if (subEl) subEl.textContent = `Autonomous agents filtered by query "${val}". Click Dossier, Date, or Rankings to interact.`;
+    }
+  }
 }
 
 function renderPeople() {
@@ -1242,8 +1269,8 @@ function renderPeople() {
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;flex-wrap:wrap;gap:12px;">
       <div>
-        <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);">25 Verified Public Figures</div>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;">Each candidate represented by an autonomous agent reading strictly two public sources: LinkedIn and Instagram.</div>
+        <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);" id="directoryTitle">${state.people.length} Verified Public Figures</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;" id="directorySub">Each candidate represented by an autonomous agent reading strictly two public sources: LinkedIn and Instagram.</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <input type="text" id="candidateSearch" placeholder="🔍 Search candidate by name, role, domain…" oninput="filterCandidates(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:12px;padding:7px 14px;border-radius:var(--radius-xs);width:270px;outline:none;">
@@ -1314,7 +1341,10 @@ function renderProfile() {
       <div class="dossier-header">
         <div class="dossier-monogram">${initials(p.name)}</div>
         <div style="flex:1">
-          <div class="dossier-name">${esc(p.name)}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="dossier-name">${esc(p.name)}</div>
+            <span class="badge-mono ok" style="font-size:10px;padding:3px 8px;">AGENT ACTIVE</span>
+          </div>
           <div class="dossier-role">${esc(p.verified_role || 'Public Figure')}</div>
           <div class="dossier-summary">${esc(q.summary || 'Profile summary extracted from public evidence.')}</div>
           <div class="dossier-actions">

@@ -14,7 +14,13 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-app.use(express.static(path.join(root, '../public')));
+app.use(express.static(path.join(root, '../public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 // Load demo data
 let DEMO = null;
@@ -63,7 +69,17 @@ app.post('/api/analyze', async (req, res) => {
     p.sources.linkedin = li;
     p.sources.instagram = ig;
     p.profile = await analyzePerson(p);
-    console.log(`[analyze] Done: ${name}`);
+
+    const rawHeadline = p.profile?.observed_facts?.headline || '';
+    const cleanRole = rawHeadline
+      .replace(/^title:\s*/i, '')
+      .replace(/\|.*$/i, '')
+      .replace(/–.*$/i, '')
+      .replace(new RegExp(`^${name}\\s*[-–—:]*\\s*`, 'i'), '')
+      .trim();
+    p.verified_role = cleanRole || 'Verified Candidate';
+
+    console.log(`[analyze] Done: ${name} (${p.verified_role})`);
 
     res.json(p);
   } catch (e) {
