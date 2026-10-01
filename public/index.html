@@ -3,560 +3,714 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agentic Dating — AI Agents Date On Your Behalf</title>
-<meta name="description" content="Local autonomous agents represent real people, analyze public LinkedIn and Instagram profiles, simulate grounded dates, and rank compatibility.">
+<title>Agentic Dating — Autonomous Agent Matchmaking</title>
+<meta name="description" content="Local autonomous agents represent real people, analyze strictly two public sources (LinkedIn & Instagram), simulate grounded dates, and rank compatibility.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===== DESIGN TOKENS ===== */
+/* ===== REFINED EDITORIAL DESIGN SYSTEM ===== */
 :root {
-  --bg: #070910;
-  --surface: #0e1118;
-  --card: #13161f;
-  --card2: #181c27;
-  --border: #232839;
-  --border2: #2d3347;
-  --text: #f0f4ff;
-  --text2: #9ba4bb;
-  --text3: #6b7490;
-  --accent: #ff4d8d;
-  --accent2: #7c6aff;
-  --accent3: #00d4aa;
-  --glow: rgba(124,106,255,0.15);
-  --glow2: rgba(255,77,141,0.12);
-  --radius: 20px;
-  --radius-sm: 12px;
-  --radius-xs: 8px;
+  --bg: #090b0e;
+  --surface: #101319;
+  --card: #151921;
+  --card2: #1b212c;
+  --card3: #222938;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --accent: #d4a373;          /* Warm Champagne Gold */
+  --accent-light: #f3d5b5;
+  --accent-soft: rgba(212, 163, 115, 0.12);
+  --accent-border: rgba(212, 163, 115, 0.28);
+  
+  --accent-alt: #e07a5f;      /* Burnished Terracotta */
+  --success: #2dd4bf;         /* Sage Emerald */
+  --warn: #f59e0b;            /* Warm Amber */
+  --danger: #f87171;           /* Muted Coral */
+
+  --font-serif: 'Newsreader', Georgia, Cambria, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--bg); }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.55;
   min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse 80% 60% at 10% -5%, rgba(124,106,255,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(255,77,141,0.06) 0%, transparent 60%);
+  -webkit-font-smoothing: antialiased;
 }
 
 a { color: inherit; text-decoration: none; }
 
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--card3); border-radius: 99px; }
 
 /* ===== LAYOUT ===== */
-.wrap { max-width: 1380px; margin: auto; padding: 0 28px 80px; }
+.wrap { max-width: 1360px; margin: auto; padding: 0 28px 80px; }
 
-/* ===== NAV ===== */
+/* ===== TOP NAVIGATION ===== */
 nav {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 28px; max-width: 1380px; margin: auto;
+  padding: 24px 28px; max-width: 1360px; margin: auto;
+  border-bottom: 1px solid var(--border);
 }
+.brand-group { display: flex; align-items: baseline; gap: 10px; }
 .brand {
-  font-size: 22px; font-weight: 900; letter-spacing: -.04em;
+  font-family: var(--font-serif);
+  font-size: 24px; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--text);
 }
-.brand span { color: var(--accent); }
+.brand em { font-style: italic; color: var(--accent); }
+.brand-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted);
+}
 .nav-pill {
-  padding: 8px 16px; border: 1px solid var(--border);
-  border-radius: 99px; font-size: 12px; color: var(--text2);
-  background: rgba(255,255,255,0.03);
+  font-family: var(--font-mono);
+  padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: 99px; font-size: 11px; color: var(--text-secondary);
+  background: var(--surface);
 }
 
-/* ===== HERO ===== */
+/* ===== HERO EDITORIAL SECTION ===== */
 .hero {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 24px; margin-top: 20px; align-items: start;
+  display: grid; grid-template-columns: 1.15fr 0.85fr;
+  gap: 32px; margin-top: 36px; align-items: start;
 }
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--accent); margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px;
+}
+.kicker::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+}
+
 .hero-left h1 {
-  font-size: 52px; font-weight: 900; letter-spacing: -.05em;
-  line-height: 1.0; margin-bottom: 16px;
+  font-family: var(--font-serif);
+  font-size: 54px; font-weight: 400; line-height: 1.08;
+  letter-spacing: -0.02em; margin-bottom: 18px; color: var(--text);
 }
-.hero-left h1 em { font-style: normal; color: var(--accent); }
-.hero-sub { color: var(--text2); font-size: 15px; line-height: 1.7; max-width: 500px; }
+.hero-left h1 em {
+  font-style: italic; font-weight: 400; color: var(--accent-light);
+}
+.hero-sub {
+  color: var(--text-secondary); font-size: 15px; line-height: 1.7; max-width: 520px;
+}
 
 /* ===== FORM PANEL ===== */
 .form-panel {
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 28px;
-  position: relative; overflow: hidden;
+  padding: 24px 26px; margin-top: 28px;
 }
-.form-panel::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-}
-.form-title { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
-.form-desc { color: var(--text2); font-size: 13px; margin-bottom: 20px; }
+.form-header { margin-bottom: 18px; }
+.form-title { font-family: var(--font-sans); font-weight: 700; font-size: 16px; color: var(--text); }
+.form-desc { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-mono); }
+
 .field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.field label {
+  display: block; font-family: var(--font-mono); font-size: 11px;
+  font-weight: 500; color: var(--text-secondary); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 6px;
+}
 .field input {
-  width: 100%; background: var(--surface); border: 1px solid var(--border);
-  color: var(--text); padding: 12px 14px; border-radius: var(--radius-sm);
-  font-size: 14px; font-family: inherit;
-  transition: border-color .2s, box-shadow .2s;
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  color: var(--text); padding: 11px 13px; border-radius: var(--radius-sm);
+  font-size: 13px; font-family: var(--font-mono);
+  transition: border-color .15s ease, background .15s ease;
   outline: none;
 }
 .field input:focus {
-  border-color: var(--accent2);
-  box-shadow: 0 0 0 3px rgba(124,106,255,0.15);
+  border-color: var(--accent);
+  background: var(--card2);
 }
-.field input::placeholder { color: var(--text3); }
+.field input::placeholder { color: var(--text-muted); font-family: var(--font-sans); }
 
 .btn-row { display: flex; gap: 10px; margin-top: 18px; }
 .btn {
-  flex: 1; border: 0; border-radius: var(--radius-sm); padding: 13px 16px;
-  font-weight: 700; font-size: 14px; font-family: inherit;
-  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+  flex: 1; border: 0; border-radius: var(--radius-sm); padding: 11px 16px;
+  font-weight: 600; font-size: 13px; font-family: var(--font-sans);
+  cursor: pointer; transition: all .15s ease; text-align: center;
 }
-.btn:active { transform: scale(.97); }
+.btn:active { transform: translateY(1px); }
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white; box-shadow: 0 4px 24px rgba(255,77,141,0.3);
+  background: var(--accent);
+  color: #12151c;
 }
-.btn-primary:hover { box-shadow: 0 6px 32px rgba(255,77,141,0.45); transform: translateY(-1px); }
+.btn-primary:hover {
+  background: #deb285;
+}
 .btn-secondary {
-  background: var(--card2); border: 1px solid var(--border2);
-  color: var(--text2);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
-.btn-secondary:hover { border-color: var(--accent2); color: var(--text); background: rgba(124,106,255,0.1); }
-.btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+.btn-secondary:hover {
+  background: var(--card2); border-color: var(--border-strong); color: var(--text);
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ===== STATUS MESSAGE ===== */
 #msg {
-  margin-top: 14px; font-size: 13px; min-height: 20px; color: var(--text2);
+  margin-top: 12px; font-size: 12px; font-family: var(--font-mono);
+  min-height: 20px; color: var(--text-secondary);
   display: flex; align-items: center; gap: 8px;
 }
-#msg.error { color: #ff6b6b; }
-#msg.success { color: var(--accent3); }
+#msg.error { color: var(--danger); }
+#msg.success { color: var(--success); }
 
-/* ===== STATS PANEL ===== */
+/* ===== ARCHITECTURE OVERVIEW PANEL ===== */
 .stats-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 26px;
+}
+.panel-kicker {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 8px;
+}
+.panel-title {
+  font-family: var(--font-serif); font-size: 26px; font-weight: 400;
+  line-height: 1.2; margin-bottom: 18px;
+}
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-box {
   background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 28px;
+  border-radius: var(--radius-sm); padding: 14px 12px; text-align: center;
 }
-.stats-panel .label { color: var(--text3); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-.stats-panel .tagline { font-size: 26px; font-weight: 900; letter-spacing: -.03em; margin: 10px 0 20px; }
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.stat {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px; text-align: center;
+.stat-box .num {
+  font-family: var(--font-serif); font-size: 32px; font-weight: 400;
+  color: var(--text); line-height: 1;
 }
-.stat .num { font-size: 30px; font-weight: 900; letter-spacing: -.04em; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stat .unit { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.stat-box .unit {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px;
+}
 
-.flow-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-.flow-step {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px;
+.flow-list { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.flow-row {
+  display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: baseline;
+  padding: 10px 12px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
-.step-num {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 800; flex-shrink: 0; color: white;
+.flow-index {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--accent);
 }
-.step-text { color: var(--text2); }
+.flow-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
 
-/* ===== PIPELINE SEQUENCE BAR ===== */
+.disclaimer-card {
+  margin-top: 16px; padding: 11px 13px; border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border);
+  font-size: 11px; color: var(--text-muted); line-height: 1.55;
+  font-family: var(--font-mono);
+}
+
+/* ===== PIPELINE SEQUENCE STEPPER ===== */
 .pipeline-bar {
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px 20px; margin-top: 26px;
-  overflow-x: auto; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 16px; margin-top: 32px;
+  overflow-x: auto; gap: 6px;
 }
 .pipeline-step {
   display: flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 8px 14px; border-radius: 99px; transition: all .2s;
-  color: var(--text3); font-size: 13px; font-weight: 600; white-space: nowrap;
+  padding: 6px 12px; border-radius: 99px; transition: all .15s ease;
+  color: var(--text-muted); font-size: 12px; font-family: var(--font-mono);
+  white-space: nowrap;
 }
 .pipeline-step:hover { color: var(--text); background: var(--card2); }
 .pipeline-step.active {
-  color: var(--text); background: var(--card2); border: 1px solid var(--border2);
+  color: var(--text); background: var(--card2); border: 1px solid var(--border-strong);
 }
 .pipeline-step .p-num {
-  width: 22px; height: 22px; border-radius: 50%; background: var(--border2);
+  width: 18px; height: 18px; border-radius: 50%; background: var(--card3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 800; color: var(--text);
+  font-size: 10px; font-weight: 600; color: var(--text);
 }
 .pipeline-step.active .p-num {
-  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white;
+  background: var(--accent); color: #12151c;
 }
-.p-arrow { color: var(--border2); font-weight: 700; user-select: none; }
+.p-arrow { color: var(--border-strong); font-size: 12px; user-select: none; }
 
-/* ===== MAIN PANEL ===== */
+/* ===== MAIN WORKSPACE PANEL ===== */
 .main-panel {
   margin-top: 18px;
-  background: var(--card); border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-/* ===== TABS ===== */
+/* ===== WORKSPACE TABS ===== */
 .tabs {
-  display: flex; gap: 4px; padding: 16px 20px;
+  display: flex; gap: 2px; padding: 12px 18px;
   border-bottom: 1px solid var(--border);
   overflow-x: auto; flex-wrap: nowrap;
 }
 .tab {
-  padding: 9px 16px; border-radius: 99px;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  color: var(--text3); transition: all .2s; white-space: nowrap;
-  border: 1px solid transparent;
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  color: var(--text-muted); transition: all .15s ease; white-space: nowrap;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
 }
-.tab:hover { color: var(--text); background: var(--card2); }
+.tab:hover { color: var(--text); background: var(--card); }
 .tab.active {
-  background: var(--card2); color: var(--text);
-  border-color: var(--border2);
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border);
 }
 .tab-content { padding: 24px; }
 
 /* ===== LOADING SPINNER ===== */
 .spinner {
-  width: 18px; height: 18px; border: 2px solid var(--border2);
-  border-top-color: var(--accent2); border-radius: 50%;
+  width: 15px; height: 15px; border: 2px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
   animation: spin .7s linear infinite; display: inline-block; flex-shrink: 0;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ===== PEOPLE GRID ===== */
-.people-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 14px; }
+/* ===== 25 PERSON DIRECTORY GRID ===== */
+.people-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; margin-top: 14px;
+}
 .person-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
-  cursor: pointer; transition: all .2s;
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px;
+  cursor: pointer; transition: all .15s ease;
+  position: relative; display: flex; flex-direction: column;
 }
-.person-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  opacity: 0; transition: opacity .2s;
+.person-card:hover {
+  border-color: var(--border-strong); background: var(--card2);
+  transform: translateY(-1px);
 }
-.person-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
-.person-card:hover::before { opacity: 1; }
-.person-card.selected { border-color: var(--accent2); background: var(--card2); }
-.person-card.selected::before { opacity: 1; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
-.person-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-.person-role { font-size: 11px; color: var(--text3); margin-bottom: 10px; line-height: 1.3; }
-.tag-mini {
-  display: inline-block; padding: 3px 7px; border-radius: 99px;
-  border: 1px solid var(--border2); font-size: 10px; color: var(--text3);
-  margin: 2px 2px 0 0;
+.person-card.selected {
+  border-color: var(--accent); background: var(--card2);
 }
-
-/* ===== PROFILE VIEW ===== */
-.profile-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.profile-header { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 20px; }
-.profile-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+.card-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.monogram {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--card3); border: 1px solid var(--border-strong);
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-weight: 900; flex-shrink: 0;
-  color: white;
+  font-family: var(--font-serif); font-size: 14px; font-weight: 500;
+  color: var(--accent); flex-shrink: 0;
 }
-.profile-name { font-size: 32px; font-weight: 900; letter-spacing: -.04em; }
-.profile-summary { color: var(--text2); font-size: 14px; line-height: 1.7; margin-top: 6px; }
-.profile-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.person-card.selected .monogram {
+  background: var(--accent); color: #12151c; border-color: var(--accent);
+}
+.card-header-info { min-width: 0; flex: 1; }
+.person-name {
+  font-family: var(--font-sans); font-weight: 700; font-size: 13.5px;
+  color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.person-role {
+  font-size: 11px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;
+}
 
-.section-card {
+.source-badges {
+  display: flex; gap: 5px; margin-bottom: 10px; align-items: center;
+}
+.badge-mono {
+  font-family: var(--font-mono); font-size: 10px; padding: 2px 6px;
+  border-radius: var(--radius-xs); display: inline-flex; align-items: center; gap: 3px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary);
+}
+.badge-mono.ok { border-color: rgba(45, 212, 191, 0.3); color: var(--success); }
+.badge-mono.warn { border-color: rgba(245, 158, 11, 0.3); color: var(--warn); }
+.badge-mono:hover { border-color: var(--border-strong); color: var(--text); }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; flex: 1; }
+.tag-chip {
+  font-size: 10.5px; padding: 2px 7px; border-radius: var(--radius-xs);
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 18px;
+  color: var(--text-muted); font-family: var(--font-mono);
 }
-.section-title {
-  font-size: 11px; font-weight: 700; color: var(--text3);
-  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px;
-}
-.chip {
-  display: inline-block; padding: 5px 10px; border-radius: 99px;
-  border: 1px solid var(--border2); font-size: 12px; color: var(--text2);
-  margin: 4px 4px 0 0; background: var(--card2);
-  transition: all .2s;
-}
-.chip:hover { border-color: var(--accent2); color: var(--text); }
 
-.source-card {
-  background: var(--card2); border: 1px solid var(--border2);
-  border-radius: var(--radius-xs); padding: 12px 14px; margin-top: 8px;
-  font-size: 12px; display: flex; align-items: center; gap: 10px;
-  transition: all .2s;
+.card-actions {
+  display: flex; gap: 6px; margin-top: auto; padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
-.source-card:hover { border-color: var(--accent2); }
-.source-icon {
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+.btn-mini {
+  padding: 5px 8px; font-size: 11px; font-family: var(--font-mono);
+  border-radius: var(--radius-xs); text-align: center; flex: 1;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-secondary); cursor: pointer; transition: all .15s ease;
+}
+.btn-mini:hover { border-color: var(--border-strong); color: var(--text); background: var(--card3); }
+.btn-mini.primary { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+.btn-mini.primary:hover { background: var(--accent); color: #12151c; }
+
+/* ===== PROFILE DOSSIER VIEW ===== */
+.dossier-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.dossier-header {
+  grid-column: 1/-1; display: flex; align-items: flex-start; gap: 20px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.dossier-monogram {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--card2); border: 1px solid var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800;
+  font-family: var(--font-serif); font-size: 24px; font-weight: 500;
+  color: var(--accent); flex-shrink: 0;
 }
-.source-icon.li { background: rgba(10,102,194,0.2); color: #4a9eff; }
-.source-icon.ig { background: rgba(228,64,95,0.2); color: var(--accent); }
-.source-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
-.source-status { font-size: 11px; margin-left: auto; flex-shrink: 0; font-weight: 600; }
-.source-status.ok { color: var(--accent3); }
-.source-status.warn { color: #ffb347; }
+.dossier-name {
+  font-family: var(--font-serif); font-size: 34px; font-weight: 400;
+  letter-spacing: -0.01em; color: var(--text); line-height: 1.1;
+}
+.dossier-role {
+  font-family: var(--font-mono); font-size: 12px; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.08em; margin: 5px 0 10px;
+}
+.dossier-summary {
+  font-size: 14.5px; line-height: 1.7; color: var(--text-secondary); max-width: 820px;
+}
+.dossier-actions { display: flex; gap: 10px; margin-top: 14px; }
 
-.evidence-list { list-style: none; }
-.evidence-list li {
-  padding: 8px 12px; margin-bottom: 6px; border-left: 2px solid var(--accent2);
-  background: var(--card2); border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-  font-size: 12px; color: var(--text2); font-style: italic;
+.dossier-section {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 18px 20px;
 }
-
-/* ===== DATE VIEW ===== */
-.date-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-.date-pair { display: flex; align-items: center; gap: 10px; }
-.date-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 900; color: white; flex-shrink: 0;
+.dossier-sec-title {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.date-avatar.a { background: linear-gradient(135deg, var(--accent), #c44b7b); }
-.date-avatar.b { background: linear-gradient(135deg, var(--accent2), #4a30e8); }
-.date-x { color: var(--text3); font-size: 20px; font-weight: 900; }
-.date-meta { color: var(--text2); font-size: 13px; }
-.date-meta strong { color: var(--text); }
-
-.agent-showcase {
-  display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 18px; margin-bottom: 16px;
-}
-.agent-mini-card { display: flex; align-items: center; gap: 12px; }
-.vs-badge {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white; font-size: 11px; font-weight: 900; padding: 6px 12px;
-  border-radius: 99px; letter-spacing: .08em; text-transform: uppercase;
+.dossier-sec-desc {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 14px;
 }
 
-.date-body { display: grid; grid-template-columns: 1.25fr .75fr; gap: 16px; }
+.evidence-stack { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.evidence-item {
+  padding: 10px 12px; border-left: 2px solid var(--accent);
+  background: var(--surface); border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;
+}
+.evidence-tag {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--accent); margin-bottom: 3px;
+}
 
-.chat-wrap {
+.trait-group { margin-bottom: 14px; }
+.trait-group:last-child { margin-bottom: 0; }
+.trait-label {
+  font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px;
+}
+.trait-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.trait-chip {
+  font-size: 12px; padding: 4px 10px; border-radius: var(--radius-xs);
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 18px;
+  color: var(--text); font-family: var(--font-sans);
 }
-.chat-title-row {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
-}
-.chat-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; }
-.chat-scroll { max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
 
-.bubble {
-  padding: 10px 14px; border-radius: 14px;
-  max-width: 85%; font-size: 13px; line-height: 1.6;
-  border: 1px solid var(--border);
-  animation: bubbleIn .3s ease forwards;
-  opacity: 0; transform: translateY(8px);
-}
-@keyframes bubbleIn { to { opacity: 1; transform: translateY(0); } }
-.bubble.a-speak { background: rgba(255,77,141,0.08); border-color: rgba(255,77,141,0.2); align-self: flex-start; }
-.bubble.b-speak { background: rgba(124,106,255,0.08); border-color: rgba(124,106,255,0.2); align-self: flex-end; }
-.bubble.think {
-  background: rgba(0,212,170,0.06); border-color: rgba(0,212,170,0.15);
-  font-style: italic; opacity: 0.9; font-size: 12px; align-self: center; max-width: 90%;
-}
-.bubble-agent { font-size: 10px; font-weight: 700; margin-bottom: 4px; letter-spacing: .05em; }
-.bubble.a-speak .bubble-agent { color: var(--accent); }
-.bubble.b-speak .bubble-agent { color: var(--accent2); }
-.bubble.think .bubble-agent { color: var(--accent3); }
-
-.date-sidebar { display: flex; flex-direction: column; gap: 14px; }
-.decision-card {
+.source-detail-card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
+  border-radius: var(--radius-xs); padding: 12px 14px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.decision-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
-.decision-item {
-  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
+.source-url-text {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;
 }
-.decision-badge {
-  padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;
-  flex-shrink: 0;
-}
-.decision-badge.yes { background: rgba(0,212,170,0.15); color: var(--accent3); border: 1px solid rgba(0,212,170,0.3); }
-.decision-badge.no { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
-.decision-reason { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.source-meta-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-.chemistry-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
+/* ===== AGENT-TO-AGENT DATING VIEW ===== */
+.date-selector-bar {
+  display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 16px 20px; margin-bottom: 22px;
 }
-.chemistry-score {
-  font-size: 48px; font-weight: 900; letter-spacing: -.04em;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
+.date-selector-bar label {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); display: block; margin-bottom: 6px;
 }
-.chemistry-label { color: var(--text3); font-size: 12px; margin-top: 2px; }
-
-.date-selector {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
-}
-.date-selector select {
-  width: 100%; background: var(--card2); border: 1px solid var(--border2);
+.date-selector-bar select {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
   color: var(--text); padding: 10px 12px; border-radius: var(--radius-xs);
-  font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
-  margin-top: 6px;
+  font-size: 13px; font-family: var(--font-sans); outline: none; cursor: pointer;
 }
-.date-selector label { font-size: 12px; font-weight: 600; color: var(--text3); }
+.date-selector-bar select:focus { border-color: var(--accent); }
 
-/* ===== RANKINGS VIEW ===== */
-.rank-controls {
-  display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+/* Showcase banner */
+.agents-dossier-bar {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 20px 24px; margin-bottom: 18px;
 }
-.rank-controls label { font-size: 13px; color: var(--text2); flex-shrink: 0; }
-.rank-select {
-  background: var(--card2); border: 1px solid var(--border2);
+.agent-col { display: flex; align-items: center; gap: 14px; }
+.agent-col.b { justify-content: flex-end; text-align: right; }
+.agent-col-name { font-family: var(--font-serif); font-size: 20px; color: var(--text); font-weight: 500; }
+.agent-col-role { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.agent-col-signal { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: 3px; }
+
+.dialectic-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 12px;
+  border-radius: 99px; background: var(--surface); border: 1px solid var(--border-strong);
+  color: var(--accent);
+}
+
+.venue-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 14px 20px; margin-bottom: 18px; display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr; gap: 16px; align-items: center;
+}
+.venue-col .v-lbl {
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 3px;
+}
+.venue-col .v-val {
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--text);
+}
+
+.dating-layout {
+  display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 20px;
+}
+
+/* SCRIPT-STYLE TRANSCRIPT CONTAINER */
+.script-container {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 22px;
+}
+.script-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.script-title {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--accent);
+}
+.script-scroll {
+  max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+  padding-right: 6px;
+}
+
+/* DIALOGUE ITEM */
+.dialogue-entry {
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  line-height: 1.6;
+}
+.dialogue-entry.agent-a { border-left: 3px solid var(--accent); }
+.dialogue-entry.agent-b { border-left: 3px solid var(--accent-alt); }
+.dialogue-entry.thought {
+  background: rgba(255, 255, 255, 0.02); border-left: 3px dashed var(--text-muted);
+}
+.entry-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px; font-family: var(--font-mono); font-size: 10.5px;
+}
+.entry-speaker { font-weight: 600; color: var(--text); }
+.dialogue-entry.agent-a .entry-speaker { color: var(--accent); }
+.dialogue-entry.agent-b .entry-speaker { color: var(--accent-alt); }
+.entry-mode { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.entry-spoken {
+  font-family: var(--font-serif); font-size: 15px; color: var(--text);
+}
+.entry-thought {
+  font-family: var(--font-sans); font-size: 12.5px; font-style: italic; color: var(--text-secondary);
+}
+
+/* SIDEBAR OUTCOMES */
+.outcome-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.outcome-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px;
+}
+.outcome-title {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 12px;
+}
+.score-display {
+  display: flex; align-items: baseline; gap: 6px;
+}
+.score-number {
+  font-family: var(--font-serif); font-size: 52px; font-weight: 400;
+  line-height: 1; color: var(--text);
+}
+.score-out-of {
+  font-family: var(--font-mono); font-size: 14px; color: var(--text-muted);
+}
+
+.decision-block {
+  padding: 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xs); margin-bottom: 10px;
+}
+.decision-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+}
+.decision-speaker {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text);
+}
+.verdict-tag {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: var(--radius-xs); text-transform: uppercase;
+}
+.verdict-tag.pass { background: rgba(45, 212, 191, 0.15); color: var(--success); border: 1px solid rgba(45, 212, 191, 0.3); }
+.verdict-tag.fail { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+.decision-reason-text {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+}
+
+/* ===== MATCH RANKINGS TABLE ===== */
+.rank-controls-row {
+  display: flex; gap: 14px; align-items: center; margin-bottom: 20px;
+}
+.rank-controls-row label {
+  font-family: var(--font-mono); font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); flex-shrink: 0;
+}
+.rank-select-input {
+  background: var(--card); border: 1px solid var(--border);
   color: var(--text); padding: 9px 14px; border-radius: var(--radius-xs);
-  font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
-  flex: 1; min-width: 220px;
+  font-size: 13px; font-family: var(--font-sans); outline: none; cursor: pointer;
+  flex: 1; max-width: 420px;
 }
-.ranking-table { display: flex; flex-direction: column; gap: 8px; }
-.rank-row {
-  display: grid; grid-template-columns: 44px 1fr 140px 80px;
-  gap: 14px; align-items: center;
-  padding: 14px 16px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: all .2s; cursor: pointer;
+
+.ledger-table { display: flex; flex-direction: column; gap: 6px; }
+.ledger-row {
+  display: grid; grid-template-columns: 44px 1fr 140px 90px;
+  gap: 16px; align-items: center;
+  padding: 12px 18px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); transition: all .15s ease; cursor: pointer;
 }
-.rank-row:hover { border-color: var(--border2); background: var(--card2); transform: translateX(4px); }
-.rank-num {
-  width: 32px; height: 32px; border-radius: 50%; font-weight: 800; font-size: 13px;
+.ledger-row:hover {
+  border-color: var(--border-strong); background: var(--card2);
+}
+.ledger-rank-num {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  color: var(--text-muted);
+}
+.ledger-row:nth-child(1) .ledger-rank-num { color: var(--accent); }
+
+.ledger-name-group { min-width: 0; }
+.ledger-name {
+  font-family: var(--font-sans); font-weight: 700; font-size: 14px; color: var(--text);
+}
+.ledger-explanation {
+  font-family: var(--font-serif); font-size: 13px; font-style: italic;
+  color: var(--text-secondary); margin-top: 3px; line-height: 1.45;
+}
+.ledger-reasons {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ledger-score-group { text-align: right; }
+.ledger-score-num {
+  font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--text);
+}
+.ledger-score-label {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;
+}
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(9, 11, 14, 0.88);
   display: flex; align-items: center; justify-content: center;
-  background: var(--card2); color: var(--text3); border: 1px solid var(--border2);
+  z-index: 100; padding: 20px; backdrop-filter: blur(6px);
 }
-.rank-num.top1 { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; }
-.rank-num.top2 { background: linear-gradient(135deg, #c0c0c0, #909090); color: #000; border: none; }
-.rank-num.top3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; border: none; }
-.rank-name { font-weight: 700; font-size: 14px; }
-.rank-reasons { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.rank-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
-.rank-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
-.rank-score { font-size: 20px; font-weight: 900; text-align: right; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.modal-overlay.hidden { display: none !important; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 28px; max-width: 540px; width: 100%;
+}
+.modal-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;
+}
+.modal-title { font-family: var(--font-serif); font-size: 24px; font-weight: 400; color: var(--text); }
+.modal-close-btn {
+  background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
+  width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; cursor: pointer;
+}
+.modal-close-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+.bar-track { height: 4px; background: var(--card3); border-radius: 99px; overflow: hidden; margin: 6px 0; }
+.bar-val { height: 100%; background: var(--accent); border-radius: 99px; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-title { font-family: var(--font-serif); font-size: 22px; margin-bottom: 6px; }
+.empty-desc { font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); }
 
 .hidden { display: none !important; }
 
-/* ===== BREAKDOWN MODAL ===== */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(7,9,16,0.85);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100; padding: 20px; backdrop-filter: blur(8px);
-  animation: fadeIn .2s ease;
-}
-.modal-overlay.hidden { display: none !important; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.modal {
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 28px; max-width: 520px; width: 100%;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
-  animation: slideUp .3s ease;
-}
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.modal-title { font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
-.modal-close {
-  background: var(--surface); border: 1px solid var(--border2);
-  color: var(--text2); font-size: 16px; cursor: pointer;
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-}
-.modal-close:hover {
-  background: rgba(255,77,141,0.25); border-color: var(--accent);
-  color: #fff; transform: scale(1.08);
-}
-.breakdown-item { margin-bottom: 14px; }
-.breakdown-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.breakdown-label span:first-child { color: var(--text2); text-transform: capitalize; }
-.breakdown-label span:last-child { font-weight: 700; color: var(--text); }
-.breakdown-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.breakdown-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; }
-.breakdown-shared { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center; padding: 60px 20px;
-}
-.empty-icon { font-size: 48px; margin-bottom: 14px; }
-.empty-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-.empty-desc { color: var(--text2); font-size: 14px; }
-
-/* ===== DISCLAIMER ===== */
-.disclaimer {
-  font-size: 11px; color: var(--text3); margin-top: 14px; line-height: 1.6;
-  padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar {
-  height: 3px; background: var(--border); border-radius: 99px;
-  overflow: hidden; margin: 12px 0;
-}
-.progress-fill {
-  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
-  border-radius: 99px; transition: width .4s ease;
-}
-
 /* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) { .people-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 960px) {
-  .hero { grid-template-columns: 1fr; }
-  .profile-layout { grid-template-columns: 1fr; }
-  .date-body { grid-template-columns: 1fr; }
+@media (max-width: 1100px) {
   .people-grid { grid-template-columns: repeat(3, 1fr); }
-  .rank-row { grid-template-columns: 40px 1fr 80px; }
-  .rank-bar-wrap { display: none; }
+  .hero { grid-template-columns: 1fr; }
+  .dating-layout { grid-template-columns: 1fr; }
+  .dossier-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   nav, .wrap { padding-left: 16px; padding-right: 16px; }
   .hero-left h1 { font-size: 38px; }
-  .people-grid { grid-template-columns: repeat(2, 1fr); }
-  .stats-grid { grid-template-columns: repeat(3,1fr); }
-  .btn-row { flex-direction: column; }
-  .tabs { padding: 12px 16px; }
+  .people-grid { grid-template-columns: 1fr; }
+  .ledger-row { grid-template-columns: 36px 1fr 60px; }
+  .venue-card { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="brand">agentic<span>/</span>dating</div>
-  <div class="nav-pill">2-source profiles · 25 real people · 300 simulated dates</div>
+  <div class="brand-group">
+    <div class="brand">agentic<em>/</em>dating</div>
+    <span class="brand-tag">Autonomous Protocol</span>
+  </div>
+  <div class="nav-pill">2 Sources · 25 Real People · 300 Simulated Dates</div>
 </nav>
 
 <div class="wrap">
 
-  <!-- HERO -->
+  <!-- HERO SECTION -->
   <div class="hero">
     <div class="hero-left">
-      <h1>Agents date.<br>You get the <em>best match.</em></h1>
-      <p class="hero-sub">Each person is represented by an autonomous agent reading exactly two sources: public LinkedIn and public Instagram. Agents simulate profile-grounded dates, and produce rankings earned through genuine dialogue.</p>
+      <div class="kicker">Protocol // Grounded Matchmaking</div>
+      <h1>Autonomous Agents Date.<br><em>Grounded Evidence Ranks.</em></h1>
+      <p class="hero-sub">Each person is represented by an autonomous agent reading strictly two public sources: LinkedIn and Instagram. Agents evaluate synergy, simulate profile-grounded dates, and compute an uncompromised compatibility ranking.</p>
 
-      <div class="form-panel" style="margin-top:24px;">
-        <div class="form-title">Analyze Custom Person</div>
-        <div class="form-desc">Provide public profile URLs. Strictly no third sources or API keys required.</div>
-        <div class="field">
-          <label>Person Name</label>
-          <input id="name" placeholder="e.g. Demis Hassabis" autocomplete="off">
+      <div class="form-panel">
+        <div class="form-header">
+          <div class="form-title">Analyze Custom Candidate</div>
+          <div class="form-desc">Strict 2-source boundary. Zero external AI APIs required.</div>
         </div>
         <div class="field">
-          <label>LinkedIn Public Profile URL</label>
+          <label>Full Name</label>
+          <input id="name" placeholder="Candidate Name" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Public LinkedIn Profile URL</label>
           <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" autocomplete="off">
         </div>
         <div class="field">
-          <label>Instagram Public Profile URL</label>
+          <label>Public Instagram Profile URL</label>
           <input id="instagram" placeholder="https://www.instagram.com/username/" autocomplete="off">
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="analyzeBtn">Analyze Person</button>
+          <button class="btn btn-primary" id="analyzeBtn">Analyze Candidate</button>
           <button class="btn btn-secondary" id="demoBtn">Load 25-Person Demo</button>
         </div>
         <div id="msg"></div>
@@ -564,34 +718,49 @@ nav {
     </div>
 
     <div class="stats-panel">
-      <div class="label">System Architecture</div>
-      <div class="tagline">LinkedIn + IG → Agent → Date → Ranking</div>
+      <div class="panel-kicker">Architecture Specification</div>
+      <div class="panel-title">LinkedIn + Instagram → Agent → Date → Ranking</div>
 
       <div class="stats-grid">
-        <div class="stat"><div class="num" id="statPeople">25</div><div class="unit">people</div></div>
-        <div class="stat"><div class="num" id="statLinks">50</div><div class="unit">verified sources</div></div>
-        <div class="stat"><div class="num" id="statDates">300</div><div class="unit">simulated dates</div></div>
+        <div class="stat-box"><div class="num" id="statPeople">25</div><div class="unit">People</div></div>
+        <div class="stat-box"><div class="num" id="statLinks">50</div><div class="unit">Sources</div></div>
+        <div class="stat-box"><div class="num" id="statDates">300</div><div class="unit">Unique Dates</div></div>
       </div>
 
-      <div class="flow-steps">
-        <div class="flow-step"><div class="step-num">1</div><div class="step-text">Strict 2-source boundary: LinkedIn + Instagram only</div></div>
-        <div class="flow-step"><div class="step-num">2</div><div class="step-text">Playwright + Cheerio extract public HTML &amp; metadata</div></div>
-        <div class="flow-step"><div class="step-num">3</div><div class="step-text">Local NLP extracts grounded profile + source evidence</div></div>
-        <div class="flow-step"><div class="step-num">4</div><div class="step-text">Autonomous agents inspect, propose, debate &amp; date</div></div>
-        <div class="flow-step"><div class="step-num">5</div><div class="step-text">Dating outcome &amp; chemistry directly determine rankings</div></div>
+      <div class="flow-list">
+        <div class="flow-row">
+          <div class="flow-index">01</div>
+          <div class="flow-text">Strict 2-Source Boundary: Exactly one public LinkedIn and one public Instagram URL.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-index">02</div>
+          <div class="flow-text">Playwright + Cheerio extract public metadata, JSON-LD, and visible text.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-index">03</div>
+          <div class="flow-text">Local Deterministic NLP derives grounded profile traits with sentence evidence.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-index">04</div>
+          <div class="flow-text">Autonomous DatingAgent simulates multi-turn dates with speech and thoughts.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-index">05</div>
+          <div class="flow-text">Compatibility ranking is directly influenced by date outcomes and mutual agreement.</div>
+        </div>
       </div>
 
-      <div class="disclaimer">
-        Simulated agent dialogue — not statements made by the real person. Only public profile data is used. No sensitive attributes are inferred.
+      <div class="disclaimer-card">
+        [NOTE] Simulated agent dialogue — not statements made by the real person. Only public profile data is evaluated. No sensitive attributes are inferred.
       </div>
     </div>
   </div>
 
-  <!-- PIPELINE SEQUENCE BAR -->
+  <!-- PIPELINE PROGRESSION INDICATOR -->
   <div class="pipeline-bar">
     <div class="pipeline-step active" id="p-step-1" onclick="activate('people')">
       <span class="p-num">1</span>
-      <span>25 People</span>
+      <span>25 Profiles</span>
     </div>
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-2" onclick="activate('profile');">
@@ -601,32 +770,32 @@ nav {
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-3" onclick="activate('profile');">
       <span class="p-num">3</span>
-      <span>Profile Analysis</span>
+      <span>Profile Dossier</span>
     </div>
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-4" onclick="activate('date');">
       <span class="p-num">4</span>
-      <span>Agent Date</span>
+      <span>Agent Dating</span>
     </div>
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-5" onclick="activate('date');">
       <span class="p-num">5</span>
-      <span>Date Result</span>
+      <span>Date Transcript</span>
     </div>
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-6" onclick="activate('rank');">
       <span class="p-num">6</span>
-      <span>Rankings</span>
+      <span>Rankings Ledger</span>
     </div>
   </div>
 
-  <!-- MAIN PANEL -->
+  <!-- MAIN WORKSPACE -->
   <div class="main-panel">
     <div class="tabs">
-      <div class="tab active" data-tab="people" id="tab-people">🧑‍🤝‍🧑 25 People</div>
-      <div class="tab" data-tab="profile" id="tab-profile">🧠 Agent Profile &amp; Sources</div>
-      <div class="tab" data-tab="date" id="tab-date">💬 Agents Dating</div>
-      <div class="tab" data-tab="rank" id="tab-rank">🏆 Dating-Influenced Rankings</div>
+      <div class="tab active" data-tab="people" id="tab-people">01. Directory (25 People)</div>
+      <div class="tab" data-tab="profile" id="tab-profile">02. Profile Dossier &amp; Sources</div>
+      <div class="tab" data-tab="date" id="tab-date">03. Agent-to-Agent Date</div>
+      <div class="tab" data-tab="rank" id="tab-rank">04. Compatibility Ledger</div>
     </div>
 
     <div class="tab-content">
@@ -642,9 +811,12 @@ nav {
 <!-- BREAKDOWN MODAL -->
 <div id="modal" class="modal-overlay hidden" style="display: none;">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-title">Compatibility Breakdown</div>
-      <button class="modal-close" onclick="closeModal()" title="Close" aria-label="Close">✕</button>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title">Compatibility Breakdown</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;">Multi-Factor Grounded Evaluation</div>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal()" title="Close">✕</button>
     </div>
     <div id="modal-body"></div>
   </div>
@@ -658,8 +830,7 @@ let dateCache = {};
 /* ===== UTILS ===== */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-const chips = (xs = [], cls = '') => xs.map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join('');
-const miniTags = (xs = []) => xs.slice(0, 2).map(x => `<span class="tag-mini">${esc(x)}</span>`).join('');
+const miniTags = (xs = []) => xs.slice(0, 2).map(x => `<span class="tag-chip">${esc(x)}</span>`).join('');
 
 function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -706,27 +877,24 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   if (t.dataset.tab === 'people') renderPeople();
 });
 
-/* ===== PEOPLE VIEW ===== */
+/* ===== DIRECTORY VIEW ===== */
 function renderPeople() {
   const el = $('view-people');
   if (!state.people.length) {
     el.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">👥</div>
-      <div class="empty-title">No people loaded</div>
-      <div class="empty-desc">Click "Load 25-Person Demo" above to explore the finished run.</div>
+      <div class="empty-title">No Profiles Loaded</div>
+      <div class="empty-desc">Click "Load 25-Person Demo" above to inspect the finished run.</div>
     </div>`;
     return;
   }
   el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;flex-wrap:wrap;gap:10px;">
       <div>
-        <div style="font-size:16px;font-weight:700;">25 Grounded Agent Profiles</div>
-        <p style="color:var(--text2);font-size:13px;">Grounded exclusively in two verified public sources: LinkedIn and Instagram. No external APIs or third-party data.</p>
+        <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);">25 Verified Public Figures</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;">Each represented by a local DatingAgent grounded solely in public LinkedIn and Instagram text.</div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <span class="chip" style="background:rgba(0,212,170,0.12);color:var(--accent3);border:1px solid rgba(0,212,170,0.3);font-size:11px;">✓ 25 Real People</span>
-        <span class="chip" style="background:rgba(124,106,255,0.12);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:11px;">✓ 300 Unique Pair Dates</span>
-        <span class="chip" style="background:rgba(255,77,141,0.12);color:var(--accent);border:1px solid rgba(255,77,141,0.3);font-size:11px;">✓ 100% Local NLP</span>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);">
+        300 Unique Pair Dates Generated
       </div>
     </div>
     <div class="people-grid">
@@ -736,29 +904,29 @@ function renderPeople() {
         const igStatus = p.sources?.instagram?.status || 'verified_public';
         return `
           <div class="person-card ${isSelected ? 'selected' : ''}" onclick="selectPerson('${p.id}')">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <div class="profile-avatar" style="width:38px;height:38px;font-size:14px;flex-shrink:0;">${initials(p.name)}</div>
-              <div style="min-width:0;flex:1;">
-                <div class="person-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
-                <div class="person-role" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.verified_role || 'Public Figure')}</div>
+            <div class="card-top">
+              <div class="monogram">${initials(p.name)}</div>
+              <div class="card-header-info">
+                <div class="person-name">${esc(p.name)}</div>
+                <div class="person-role">${esc(p.verified_role || 'Public Figure')}</div>
               </div>
             </div>
 
-            <div style="display:flex;gap:6px;margin-bottom:8px;font-size:11px;align-items:center;">
-              <a href="${esc(p.linkedin)}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:rgba(10,102,194,0.15);color:#4a9eff;border:1px solid rgba(10,102,194,0.3);text-decoration:none;" title="LinkedIn: ${liStatus}">
-                <span>in</span> <span style="font-size:9px;">${liStatus === 'verified_public' ? '✓' : '⚠'}</span>
+            <div class="source-badges">
+              <a href="${esc(p.linkedin)}" target="_blank" onclick="event.stopPropagation()" class="badge-mono ${liStatus === 'verified_public' ? 'ok' : 'warn'}" title="LinkedIn: ${liStatus}">
+                <span>LI</span><span>${liStatus === 'verified_public' ? '●' : '▲'}</span>
               </a>
-              <a href="${esc(p.instagram)}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:rgba(228,64,95,0.15);color:var(--accent);border:1px solid rgba(228,64,95,0.3);text-decoration:none;" title="Instagram: ${igStatus}">
-                <span>ig</span> <span style="font-size:9px;">${igStatus === 'verified_public' ? '✓' : '⚠'}</span>
+              <a href="${esc(p.instagram)}" target="_blank" onclick="event.stopPropagation()" class="badge-mono ${igStatus === 'verified_public' ? 'ok' : 'warn'}" title="Instagram: ${igStatus}">
+                <span>IG</span><span>${igStatus === 'verified_public' ? '●' : '▲'}</span>
               </a>
-              <span class="tag-mini" style="margin-left:auto;background:rgba(0,212,170,0.1);color:var(--accent3);border-color:rgba(0,212,170,0.25);">✓ Analyzed</span>
+              <span class="badge-mono" style="margin-left:auto;color:var(--accent);">AGENT READY</span>
             </div>
 
-            <div style="margin-bottom:8px;flex:1;">${miniTags(p.profile?.interests || [])}</div>
+            <div class="tag-list">${miniTags(p.profile?.interests || [])}</div>
 
-            <div style="display:flex;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--border);" onclick="event.stopPropagation()">
-              <button class="btn btn-secondary" style="padding:6px 8px;font-size:11px;flex:1;" onclick="selectPerson('${p.id}')">Profile</button>
-              <button class="btn btn-primary" style="padding:6px 8px;font-size:11px;flex:1;" onclick="goDate('${p.id}')">Date →</button>
+            <div class="card-actions" onclick="event.stopPropagation()">
+              <button class="btn-mini" onclick="selectPerson('${p.id}')">Dossier</button>
+              <button class="btn-mini primary" onclick="goDate('${p.id}')">Simulate Date →</button>
             </div>
           </div>
         `;
@@ -766,7 +934,7 @@ function renderPeople() {
     </div>`;
 }
 
-/* ===== PROFILE VIEW ===== */
+/* ===== PROFILE DOSSIER VIEW ===== */
 async function selectPerson(id) {
   state.selected = id;
   renderPeople();
@@ -778,7 +946,7 @@ function renderProfile() {
   const el = $('view-profile');
   const p = state.people.find(x => x.id === state.selected);
   if (!p) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧠</div><div class="empty-title">Select a person first</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-title">No Candidate Selected</div><div class="empty-desc">Select a profile from the directory.</div></div>`;
     return;
   }
   const q = p.profile || {};
@@ -786,125 +954,127 @@ function renderProfile() {
   const igLen = p.sources?.instagram?.text?.length || 0;
   const liStatus = p.sources?.linkedin?.status || 'verified_public';
   const igStatus = p.sources?.instagram?.status || 'verified_public';
-
-  const liQuality = liStatus === 'verified_public' ? '✓ Verified Public Page' : '⚠ Limited Public Content';
-  const igQuality = igStatus === 'verified_public' ? '✓ Verified Public Bio' : '⚠ Limited Public Content';
-  const liQualityCls = liStatus === 'verified_public' ? 'ok' : 'warn';
-  const igQualityCls = igStatus === 'verified_public' ? 'ok' : 'warn';
-
   const evidenceList = p.profile?.evidence || [];
-  const derived = p.profile || {};
 
   el.innerHTML = `
-    <div class="profile-layout">
-      <div class="profile-header">
-        <div class="profile-avatar">${initials(p.name)}</div>
+    <div class="dossier-layout">
+      <div class="dossier-header">
+        <div class="dossier-monogram">${initials(p.name)}</div>
         <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div class="profile-name">${esc(p.name)}</div>
-            <span class="chip" style="background:rgba(0,212,170,0.15);color:var(--accent3);border:1px solid rgba(0,212,170,0.3);font-size:11px;padding:3px 10px;">
-              ✓ Verified Public Figure
-            </span>
-          </div>
-          <div style="color:var(--text2);font-size:13px;margin:2px 0 6px;">${esc(p.verified_role || 'Public Figure')}</div>
-          <div class="profile-summary">${esc(q.summary || 'No summary available.')}</div>
-          <div class="profile-actions">
-            <button class="btn btn-primary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="goDate('${p.id}')">Simulate Agent Date with Another →</button>
-            <button class="btn btn-secondary" style="flex:none;padding:9px 18px;font-size:13px;" onclick="activate('rank');renderRank('${p.id}')">View Dating Rankings for ${esc(p.name)} →</button>
+          <div class="dossier-name">${esc(p.name)}</div>
+          <div class="dossier-role">${esc(p.verified_role || 'Public Figure')}</div>
+          <div class="dossier-summary">${esc(q.summary || 'Profile summary extracted from public evidence.')}</div>
+          <div class="dossier-actions">
+            <button class="btn btn-primary" style="flex:none;padding:8px 16px;font-size:12px;" onclick="goDate('${p.id}')">Simulate Date with Another Agent →</button>
+            <button class="btn btn-secondary" style="flex:none;padding:8px 16px;font-size:12px;" onclick="activate('rank');renderRank('${p.id}')">View Compatibility Rankings for ${esc(p.name)} →</button>
           </div>
         </div>
       </div>
 
-      <!-- LEFT COLUMN: OBSERVED PUBLIC SOURCES & GROUNDED EVIDENCE -->
-      <div>
-        <div class="section-card">
-          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>📋</span> Observed Public Evidence (Source Grounding)
+      <!-- LEFT: SOURCE GROUNDING -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="dossier-section">
+          <div class="dossier-sec-title">
+            <span>Observed Source Grounding</span>
+            <span style="color:var(--text-muted);">${evidenceList.length} Snippets</span>
           </div>
-          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Extracted strictly from the two verified public profiles. Attributed to [LinkedIn] or [Instagram].</p>
-          <ul class="evidence-list" style="margin-bottom:14px;">
-            ${evidenceList.map(e => `<li>${esc(e)}</li>`).join('')}
+          <div class="dossier-sec-desc">Sentence-level facts extracted directly from the two verified public pages without external enrichment.</div>
+          <ul class="evidence-stack">
+            ${evidenceList.map(e => `
+              <li class="evidence-item">
+                <div class="evidence-tag">${e.startsWith('[LinkedIn]') ? '[LINKEDIN SOURCE]' : '[INSTAGRAM SOURCE]'}</div>
+                <div>${esc(e.replace(/^\[(LinkedIn|Instagram)\]\s*/i, ''))}</div>
+              </li>
+            `).join('')}
           </ul>
         </div>
 
-        <div class="section-card" style="margin-top:14px;">
-          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>🔗</span> Strict 2-Source Verification &amp; Status
+        <div class="dossier-section">
+          <div class="dossier-sec-title">Verified Public Ingestion Audit</div>
+          <div class="source-detail-card">
+            <div>
+              <div class="source-url-text">${esc(p.linkedin)}</div>
+              <div class="source-meta-sub">${(liLen/1000).toFixed(1)}k characters public text</div>
+            </div>
+            <span class="badge-mono ${liStatus === 'verified_public' ? 'ok' : 'warn'}">
+              ${liStatus === 'verified_public' ? 'VERIFIED PUBLIC' : 'LIMITED PUBLIC'}
+            </span>
           </div>
-          <a href="${esc(p.linkedin)}" target="_blank" class="source-card" style="margin-bottom:10px;">
-            <div class="source-icon li">in</div>
-            <div style="flex:1;min-width:0;">
-              <div class="source-url">${esc(p.linkedin)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${(liLen/1000).toFixed(1)}k characters public text extracted</div>
+          <div class="source-detail-card" style="margin-bottom:0;">
+            <div>
+              <div class="source-url-text">${esc(p.instagram)}</div>
+              <div class="source-meta-sub">${igLen} characters metadata</div>
             </div>
-            <div class="source-status ${liQualityCls}">${esc(liQuality)}</div>
-          </a>
-          <a href="${esc(p.instagram)}" target="_blank" class="source-card">
-            <div class="source-icon ig">📷</div>
-            <div style="flex:1;min-width:0;">
-              <div class="source-url">${esc(p.instagram)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${igLen} characters public metadata &amp; bio</div>
-            </div>
-            <div class="source-status ${igQualityCls}">${esc(igQuality)}</div>
-          </a>
+            <span class="badge-mono ${igStatus === 'verified_public' ? 'ok' : 'warn'}">
+              ${igStatus === 'verified_public' ? 'VERIFIED PUBLIC' : 'LIMITED PUBLIC'}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- RIGHT COLUMN: DERIVED AGENT TRAITS (DATING MODEL) -->
-      <div>
-        <div class="section-card">
-          <div class="section-title" style="display:flex;align-items:center;gap:6px;">
-            <span>🔮</span> Inferred Agent Traits (Grounded Dating Model)
-          </div>
-          <p style="color:var(--text3);font-size:12px;margin-bottom:12px;">Derived deterministically from observed facts to represent the person in dating simulations.</p>
-          
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Connection Needs &amp; Partnership Alignment</div>
-          <div style="margin-bottom:12px;">${chips(derived.needs)}</div>
+      <!-- RIGHT: INFERRED DATING MODEL -->
+      <div class="dossier-section">
+        <div class="dossier-sec-title">Inferred Agent Traits (Dating Model)</div>
+        <div class="dossier-sec-desc">Grounded parameters derived deterministically to represent the individual during multi-turn date simulations.</div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Hobbies &amp; Lifestyle</div>
-          <div style="margin-bottom:12px;">${derived.hobbies?.length ? chips(derived.hobbies) : '<span style="color:var(--text3);font-size:12px;">None directly observed in public sources</span>'}</div>
+        <div class="trait-group">
+          <div class="trait-label">Connection Needs &amp; Values</div>
+          <div class="trait-tags">${(q.needs || []).map(x => `<span class="trait-chip">${esc(x)}</span>`).join('')}</div>
+        </div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Interests &amp; Topics</div>
-          <div style="margin-bottom:12px;">${chips(derived.interests)}</div>
+        <div class="trait-group">
+          <div class="trait-label">Hobbies &amp; Lifestyle Pursuits</div>
+          <div class="trait-tags">${q.hobbies?.length ? q.hobbies.map(x => `<span class="trait-chip">${esc(x)}</span>`).join('') : '<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">None directly observed in public sources</span>'}</div>
+        </div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Character Qualities</div>
-          <div style="margin-bottom:12px;">${chips(derived.qualities)}</div>
+        <div class="trait-group">
+          <div class="trait-label">Domain Topics &amp; Interests</div>
+          <div class="trait-tags">${(q.interests || []).map(x => `<span class="trait-chip">${esc(x)}</span>`).join('')}</div>
+        </div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Work &amp; Professional Pace</div>
-          <div style="margin-bottom:12px;">${chips(derived.work_style)}</div>
+        <div class="trait-group">
+          <div class="trait-label">Character Qualities</div>
+          <div class="trait-tags">${(q.qualities || []).map(x => `<span class="trait-chip">${esc(x)}</span>`).join('')}</div>
+        </div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Social Communication Style</div>
-          <div style="margin-bottom:12px;">${chips(derived.social_style)}</div>
+        <div class="trait-group">
+          <div class="trait-label">Work Rhythm &amp; Professional Execution</div>
+          <div class="trait-tags">${(q.work_style || []).map(x => `<span class="trait-chip">${esc(x)}</span>`).join('')}</div>
+        </div>
 
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">Proposed Grounded Date Ideas</div>
-          <div>${chips(derived.date_ideas)}</div>
+        <div class="trait-group">
+          <div class="trait-label">Social &amp; Communication Style</div>
+          <div class="trait-tags">${(q.social_style || []).map(x => `<span class="trait-chip">${esc(x)}</span>`).join('')}</div>
+        </div>
+
+        <div class="trait-group">
+          <div class="trait-label">Grounded Date Proposals</div>
+          <div class="trait-tags">${(q.date_ideas || []).map(x => `<span class="trait-chip" style="border-color:var(--accent-border);">${esc(x)}</span>`).join('')}</div>
         </div>
       </div>
     </div>
   `;
 }
 
-/* ===== DATE VIEW ===== */
+/* ===== AGENT DATING VIEW ===== */
 function renderDateSelector() {
   const el = $('view-date');
   if (state.people.length < 2) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Need at least 2 people</div><div class="empty-desc">Load the demo to simulate dates between agents.</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-title">Minimum 2 Candidates Required</div><div class="empty-desc">Load the demo dataset to begin simulating agent dates.</div></div>`;
     return;
   }
-  if (!el.querySelector('.date-selector')) {
+  if (!el.querySelector('.date-selector-bar')) {
     el.innerHTML = `
-      <div class="date-selector" style="margin-bottom:20px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end;">
-          <div>
-            <label>Agent A</label>
-            <select id="dateSelectA" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-xs);font-size:14px;font-family:inherit;outline:none;cursor:pointer;margin-top:6px;"></select>
-          </div>
-          <div>
-            <label>Agent B</label>
-            <select id="dateSelectB" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-xs);font-size:14px;font-family:inherit;outline:none;cursor:pointer;margin-top:6px;"></select>
-          </div>
-          <button class="btn btn-primary" style="flex:none;" id="startDateBtn">Simulate Date →</button>
+      <div class="date-selector-bar">
+        <div>
+          <label>Agent A</label>
+          <select id="dateSelectA"></select>
         </div>
+        <div>
+          <label>Agent B</label>
+          <select id="dateSelectB"></select>
+        </div>
+        <button class="btn btn-primary" id="startDateBtn" style="flex:none;padding:10px 18px;">Simulate Date Dialogue →</button>
       </div>
       <div id="dateOutput"></div>
     `;
@@ -957,9 +1127,9 @@ async function runDate(a, b) {
   const output = $('dateOutput');
   if (!output) return;
 
-  output.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
-    <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;"></div>
-    <div>Simulating grounded date dialogue between <strong>${esc(a.name)}</strong> and <strong>${esc(b.name)}</strong>…</div>
+  output.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-family:var(--font-mono);">
+    <div class="spinner" style="width:24px;height:24px;margin:0 auto 12px;"></div>
+    <div>Simulating grounded dialogue between DatingAgent(${esc(a.name)}) and DatingAgent(${esc(b.name)})…</div>
   </div>`;
 
   let dateData = dateCache[key] || dateCache[revKey];
@@ -975,7 +1145,7 @@ async function runDate(a, b) {
       dateData = j.date;
       dateCache[key] = dateData;
     } catch (e) {
-      output.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-title">Date failed</div><div class="empty-desc">${esc(e.message)}</div></div>`;
+      output.innerHTML = `<div class="empty-state"><div class="empty-title">Simulation Failed</div><div class="empty-desc">${esc(e.message)}</div></div>`;
       return;
     }
   }
@@ -991,90 +1161,119 @@ function renderDateOutput(a, b, d, container) {
   const turns = (d.turns || []).map((t, i) => {
     const isA = t.agent === a.name;
     const isThink = t.type === 'think';
-    const cls = isThink ? 'think' : (isA ? 'a-speak' : 'b-speak');
-    const agentLabel = isThink ? `💭 ${esc(t.agent)} contemplates (Internal Thought)` : esc(t.agent);
-    return `<div class="bubble ${cls}" style="animation-delay:${i * 0.06}s">
-      <div class="bubble-agent">${agentLabel}</div>
-      <div>${esc(t.text)}</div>
-    </div>`;
+    const cls = isThink ? 'thought' : (isA ? 'agent-a' : 'agent-b');
+    const speakerLabel = esc(t.agent);
+    const turnIndex = `T${String(i + 1).padStart(2, '0')}`;
+    const mode = isThink ? 'INTERNAL REASONING' : 'SPOKEN DIALOGUE';
+
+    return `
+      <div class="dialogue-entry ${cls}">
+        <div class="entry-meta">
+          <span class="entry-speaker">${turnIndex} // ${speakerLabel}</span>
+          <span class="entry-mode">${mode}</span>
+        </div>
+        ${isThink
+          ? `<div class="entry-thought">"${esc(t.text)}"</div>`
+          : `<div class="entry-spoken">“${esc(t.text)}”</div>`
+        }
+      </div>
+    `;
   }).join('');
 
   container.innerHTML = `
-    <!-- AGENT COMPARISON SHOWCASE -->
-    <div class="agent-showcase">
-      <div class="agent-mini-card">
-        <div class="date-avatar a">${initials(a.name)}</div>
+    <!-- DOSSIER COMPARISON HEADER -->
+    <div class="agents-dossier-bar">
+      <div class="agent-col">
+        <div class="monogram" style="width:44px;height:44px;font-size:18px;">${initials(a.name)}</div>
         <div>
-          <div style="font-weight:800;font-size:15px;">${esc(a.name)}</div>
-          <div style="font-size:11px;color:var(--text3);">${esc(a.verified_role || 'Agent A')}</div>
-          <div style="font-size:11px;color:var(--accent);margin-top:2px;">Signal: ${esc(a.profile?.interests?.[0] || 'Innovation')}</div>
+          <div class="agent-col-name">${esc(a.name)}</div>
+          <div class="agent-col-role">${esc(a.verified_role || 'Agent A')}</div>
+          <div class="agent-col-signal">Focus: ${esc(a.profile?.interests?.[0] || 'Technology')}</div>
         </div>
       </div>
 
-      <div class="vs-badge">↕ LIVE AGENT-TO-AGENT DATE ↕</div>
+      <div class="dialectic-badge">Simulated Dialectic</div>
 
-      <div class="agent-mini-card" style="justify-content:flex-end;text-align:right;">
+      <div class="agent-col b">
         <div>
-          <div style="font-weight:800;font-size:15px;">${esc(b.name)}</div>
-          <div style="font-size:11px;color:var(--text3);">${esc(b.verified_role || 'Agent B')}</div>
-          <div style="font-size:11px;color:var(--accent2);margin-top:2px;">Signal: ${esc(b.profile?.interests?.[0] || 'Innovation')}</div>
+          <div class="agent-col-name">${esc(b.name)}</div>
+          <div class="agent-col-role">${esc(b.verified_role || 'Agent B')}</div>
+          <div class="agent-col-signal">Focus: ${esc(b.profile?.interests?.[0] || 'Technology')}</div>
         </div>
-        <div class="date-avatar b">${initials(b.name)}</div>
+        <div class="monogram" style="width:44px;height:44px;font-size:18px;">${initials(b.name)}</div>
       </div>
     </div>
 
-    <!-- DATE ACTIVITY SPOTLIGHT -->
-    <div class="section-card" style="margin-bottom:16px;background:var(--surface);display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">📍 Venue</span><div style="font-size:13px;font-weight:700;">${esc(d.venue || 'Curated Roastery')}</div></div>
-      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">🎯 Activity</span><div style="font-size:13px;font-weight:700;">${esc(d.activity || 'Interactive Discussion')}</div></div>
-      <div><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;">🔗 Shared Focus</span><div style="font-size:13px;font-weight:700;color:var(--accent3);">${esc(d.shared_interest || 'Technology & Innovation')}</div></div>
+    <!-- VENUE & ACTIVITY SPOTLIGHT -->
+    <div class="venue-card">
+      <div class="venue-col">
+        <div class="v-lbl">Venue</div>
+        <div class="v-val">${esc(d.venue || 'Quiet Venue')}</div>
+      </div>
+      <div class="venue-col">
+        <div class="v-lbl">Proposed Activity</div>
+        <div class="v-val">${esc(d.activity || 'Focused Discussion')}</div>
+      </div>
+      <div class="venue-col">
+        <div class="v-lbl">Mutual Intellectual Signal</div>
+        <div class="v-val" style="color:var(--accent);">${esc(d.shared_interest || 'Core Vision')}</div>
+      </div>
     </div>
 
-    <div class="date-body">
-      <div class="chat-wrap">
-        <div class="chat-title-row">
-          <div class="chat-title">Simulated Multi-Turn Dialogue Transcript</div>
-          <span class="chip" style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,0.05);color:var(--text3);border-color:var(--border);">
-            ${d.turns?.length || 0} Grounded Turns
-          </span>
+    <div class="dating-layout">
+      <!-- LEFT: SCRIPT TRANSCRIPT -->
+      <div class="script-container">
+        <div class="script-header">
+          <div class="script-title">10-Turn Profile-Grounded Dialogue Transcript</div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">${d.turns?.length || 0} Turns</span>
         </div>
-        <div class="chat-scroll">${turns}</div>
-        <div class="disclaimer">${esc(d.disclaimer || 'Simulated agent dialogue — not statements made by the real people.')}</div>
+        <div class="script-scroll">${turns}</div>
+        <div class="disclaimer-card" style="margin-top:14px;">
+          ${esc(d.disclaimer || 'Simulated agent dialogue — not statements made by the real person.')}
+        </div>
       </div>
 
-      <div class="date-sidebar">
-        <div class="chemistry-card">
-          <div class="section-title">Interaction Chemistry Score</div>
-          <div class="chemistry-score">${d.chemistry_score ?? '—'}<span style="font-size:20px;color:var(--text3);">/100</span></div>
-          <div class="chemistry-label">Directly derived from dialogue cohesion + grounded profile overlap</div>
-          <div class="progress-bar" style="margin-top:14px;"><div class="progress-fill" style="width:${d.chemistry_score || 0}%"></div></div>
-          ${continueBoth
-            ? '<div style="color:var(--accent3);font-weight:700;margin-top:10px;font-size:13px;">✓ Mutual Decision to Advance</div>'
-            : '<div style="color:#ffb347;font-size:13px;margin-top:10px;">Mixed or Declined Decision</div>'}
-        </div>
-
-        <div class="decision-card">
-          <div class="decision-title">Independent Agent Decisions</div>
-          <div class="decision-item">
-            <div class="decision-badge ${continueA ? 'yes' : 'no'}">${continueA ? '✓ Continue' : '✗ Stop'}</div>
-            <div>
-              <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px;">${esc(a.name)}</div>
-              <div class="decision-reason">${esc(d.decision_a?.reason || '—')}</div>
-            </div>
+      <!-- RIGHT: VERDICTS & INTERACTION CHEMISTRY -->
+      <div class="outcome-sidebar">
+        <div class="outcome-card">
+          <div class="outcome-title">Interaction Chemistry Score</div>
+          <div class="score-display">
+            <span class="score-number">${d.chemistry_score ?? '—'}</span>
+            <span class="score-out-of">/ 100</span>
           </div>
-          <div class="decision-item">
-            <div class="decision-badge ${continueB ? 'yes' : 'no'}">${continueB ? '✓ Continue' : '✗ Stop'}</div>
-            <div>
-              <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px;">${esc(b.name)}</div>
-              <div class="decision-reason">${esc(d.decision_b?.reason || '—')}</div>
-            </div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin:8px 0 12px;">
+            Derived from shared domain depth, proposal acceptance &amp; communication rhythm.
+          </div>
+          <div class="bar-track"><div class="bar-val" style="width:${d.chemistry_score || 0}%"></div></div>
+          <div style="margin-top:12px;font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:${continueBoth ? 'var(--success)' : 'var(--warn)'};">
+            ${continueBoth ? '● MUTUAL ADVANCE // Both agents agree to second meeting' : '▲ CONCLUDED // Divergent operational focus'}
           </div>
         </div>
 
-        <div class="section-card">
-          <div class="section-title">Why This Influences Rankings</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6;">
-            Compatibility is not just keyword overlap. The chemistry score (${d.chemistry_score}/100) and mutual agreement award significant weight in the final ranking calculation.
+        <div class="outcome-card">
+          <div class="outcome-title">Independent Agent Decisions</div>
+          
+          <div class="decision-block">
+            <div class="decision-header">
+              <span class="decision-speaker">${esc(a.name)}</span>
+              <span class="verdict-tag ${continueA ? 'pass' : 'fail'}">${continueA ? 'Advance' : 'Conclude'}</span>
+            </div>
+            <div class="decision-reason-text">"${esc(d.decision_a?.reason || '—')}"</div>
+          </div>
+
+          <div class="decision-block" style="margin-bottom:0;">
+            <div class="decision-header">
+              <span class="decision-speaker">${esc(b.name)}</span>
+              <span class="verdict-tag ${continueB ? 'pass' : 'fail'}">${continueB ? 'Advance' : 'Conclude'}</span>
+            </div>
+            <div class="decision-reason-text">"${esc(d.decision_b?.reason || '—')}"</div>
+          </div>
+        </div>
+
+        <div class="outcome-card">
+          <div class="outcome-title">Ranking Ledger Impact</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+            In this architecture, dates are not cosmetic. The interaction chemistry score (${d.chemistry_score}/100) and mutual continue decision directly adjust the pair's position in the candidate ledger.
           </div>
         </div>
       </div>
@@ -1082,60 +1281,63 @@ function renderDateOutput(a, b, d, container) {
   `;
 }
 
-/* ===== RANKINGS VIEW ===== */
+/* ===== RANKINGS LEDGER VIEW ===== */
 function renderRank(forPersonId) {
   const el = $('view-rank');
   if (!state.people.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">No people loaded</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-title">No Profiles Loaded</div></div>`;
     return;
   }
 
-  const personId = forPersonId || el.querySelector('.rank-select')?.value || state.people[0]?.id;
+  const personId = forPersonId || el.querySelector('.rank-select-input')?.value || state.people[0]?.id;
 
   el.innerHTML = `
-    <div class="rank-controls">
-      <label>Rankings for Agent:</label>
-      <select class="rank-select" id="rankPersonSelect" onchange="renderRank(this.value)">
-        ${state.people.map(p => `<option value="${esc(p.id)}" ${p.id === personId ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Public Figure')})</option>`).join('')}
+    <div class="rank-controls-row">
+      <label>Candidate Ledger For:</label>
+      <select class="rank-select-input" id="rankPersonSelect" onchange="renderRank(this.value)">
+        ${state.people.map(p => `<option value="${esc(p.id)}" ${p.id === personId ? 'selected' : ''}>${esc(p.name)} (${esc(p.verified_role || 'Candidate')})</option>`).join('')}
       </select>
     </div>
     <div id="rankList"></div>
-    <div class="disclaimer">Scores reflect simulated compatibility incorporating real multi-turn agent dates. Not statements made by real people.</div>
+    <div class="disclaimer-card" style="margin-top:18px;">
+      [METHODOLOGY] Ranks incorporate Interests (25%), Hobbies (15%), Needs (15%), Work/Lifestyle (15%), Social (10%), Proposal (5%), and Simulated Date Chemistry (15%) with mutual decision weight.
+    </div>
   `;
 
   const list = $('rankList');
   const ranks = state.rankings[personId] || [];
 
   if (!ranks.length) {
-    list.innerHTML = `<div style="color:var(--text3);font-size:14px;">No rankings available. Load demo or calculate rankings.</div>`;
+    list.innerHTML = `<div style="font-family:var(--font-mono);font-size:13px;color:var(--text-muted);">No rankings computed yet.</div>`;
     return;
   }
 
-  list.innerHTML = `<div class="ranking-table">
+  list.innerHTML = `<div class="ledger-table">
     ${ranks.map((r, i) => {
-      const numCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      return `<div class="rank-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view compatibility breakdown or simulated date">
-        <div class="rank-num ${numCls}">${i + 1}</div>
-        <div style="flex:1;min-width:0;padding-right:12px;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span class="rank-name">${esc(r.name)}</span>
-            ${i === 0 ? '<span class="chip" style="background:rgba(255,77,141,0.2);color:var(--accent);font-size:10px;padding:2px 8px;">★ #1 Best Fit</span>' : ''}
-            <span class="chip" style="background:rgba(124,106,255,0.15);color:var(--accent2);border:1px solid rgba(124,106,255,0.3);font-size:10px;padding:2px 8px;">💬 Date Chemistry: ${r.date?.chemistry_score ?? r.breakdown?.date_outcome?.chemistry ?? 50}/100</span>
-            ${i >= ranks.length - 2 ? '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px;padding:2px 8px;">Lowest Compatibility</span>' : ''}
+      const rankFormatted = String(i + 1).padStart(2, '0');
+      const chemistryScore = r.date?.chemistry_score ?? r.breakdown?.date_outcome?.chemistry ?? 50;
+      return `
+        <div class="ledger-row" onclick="openBreakdown('${personId}','${r.id}')" title="Click to view full dimensional breakdown or date transcript">
+          <div class="ledger-rank-num">${rankFormatted}</div>
+          <div class="ledger-name-group">
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span class="ledger-name">${esc(r.name)}</span>
+              ${i === 0 ? '<span class="badge-mono" style="color:var(--accent);border-color:var(--accent-border);">#1 BEST FIT</span>' : ''}
+              <span class="badge-mono">CHEMISTRY: ${chemistryScore}/100</span>
+            </div>
+            <div class="ledger-explanation">${esc(r.explanation || '')}</div>
+            ${r.reasons?.length ? `<div class="ledger-reasons">${esc(r.reasons.join('  ·  '))}</div>` : ''}
           </div>
-          <div class="rank-reasons" style="color:var(--text);font-size:12px;margin:3px 0 2px;">${esc(r.explanation || '')}</div>
-          ${r.reasons?.length ? `<div style="font-size:11px;color:var(--text3);">${esc(r.reasons.join(' · '))}</div>` : ''}
+          <div class="ledger-score-group">
+            <div class="ledger-score-num">${r.score}%</div>
+            <div class="ledger-score-label">Compatibility</div>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;" onclick="event.stopPropagation()">
+            <button class="btn-mini" onclick="openBreakdown('${personId}','${r.id}')">Metrics</button>
+            <button class="btn-mini primary" onclick="goDate('${personId}','${r.id}')">Date →</button>
+          </div>
         </div>
-        <div class="rank-bar-wrap">
-          <div class="rank-bar"><div class="rank-bar-fill" style="width:${r.score}%"></div></div>
-          <div style="font-size:10px;color:var(--text3);">${r.score}% fit</div>
-        </div>
-        <div class="rank-score">${r.score}<span style="font-size:12px;color:var(--text3);">%</span></div>
-        <div style="display:flex;gap:6px;margin-left:10px;" onclick="event.stopPropagation()">
-          <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="openBreakdown('${personId}','${r.id}')">📊 Breakdown</button>
-          <button class="btn btn-primary" style="padding:6px 12px;font-size:12px;" onclick="goDate('${personId}','${r.id}')">💬 Date</button>
-        </div>
-      </div>`;
+      `;
     }).join('')}
   </div>`;
 }
@@ -1148,9 +1350,9 @@ async function openBreakdown(personAId, personBId) {
 
   $('modal-title').textContent = `${a.name} × ${b.name}`;
   $('modal-body').innerHTML = `
-    <div style="text-align:center;padding:30px;color:var(--text2);">
-      <div class="spinner" style="width:24px;height:24px;margin:0 auto 10px;"></div>
-      <div>Calculating multi-factor compatibility breakdown…</div>
+    <div style="text-align:center;padding:32px;color:var(--text-muted);font-family:var(--font-mono);">
+      <div class="spinner" style="width:20px;height:20px;margin:0 auto 10px;"></div>
+      <div>Computing multi-factor compatibility ledger…</div>
     </div>
   `;
   const m = $('modal');
@@ -1168,51 +1370,49 @@ async function openBreakdown(personAId, personBId) {
     const data = await r.json();
 
     const dims = [
-      { key: 'interests', label: 'Interests & Domain Topics (25%)', icon: '🎯' },
-      { key: 'hobbies', label: 'Hobbies & Lifestyle Pursuits (15%)', icon: '🎨' },
-      { key: 'needs', label: 'Connection Needs & Values (15%)', icon: '🤝' },
-      { key: 'work_lifestyle', label: 'Work Rhythm & Lifestyle (15%)', icon: '💼' },
-      { key: 'social_style', label: 'Social & Communication Style (10%)', icon: '💬' },
-      { key: 'date_outcome', label: 'Simulated Date Outcome & Chemistry (15%)', icon: '🍷' }
+      { key: 'interests', label: 'Interests & Domain Fundamentals', weight: '25%' },
+      { key: 'hobbies', label: 'Hobbies & Lifestyle Synergy', weight: '15%' },
+      { key: 'needs', label: 'Connection Values & Needs', weight: '15%' },
+      { key: 'work_lifestyle', label: 'Work Rhythm & Operational Pace', weight: '15%' },
+      { key: 'social_style', label: 'Social & Communication Style', weight: '10%' },
+      { key: 'date_outcome', label: 'Simulated Date Chemistry & Verdict', weight: '15%' }
     ];
 
     $('modal-body').innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;">
         <div>
-          <div style="font-size:34px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-            ${data.score}% match
-          </div>
-          <div style="color:var(--text2);font-size:12px;margin-top:2px;">Transparent Multi-Factor Compatibility</div>
+          <div style="font-family:var(--font-serif);font-size:38px;color:var(--text);line-height:1;">${data.score}%</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:4px;">Multi-Dimensional Fit Index</div>
         </div>
-        <button class="btn btn-primary" style="flex:none;padding:10px 18px;font-size:13px;" onclick="closeModal();goDate('${a.id}','${b.id}')">
-          💬 Watch Them Date →
+        <button class="btn btn-primary" style="flex:none;padding:8px 14px;font-size:12px;" onclick="closeModal();goDate('${a.id}','${b.id}')">
+          Simulate Date Dialogue →
         </button>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        ${dims.map(({ key, label, icon }) => {
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        ${dims.map(({ key, label, weight }) => {
           const bk = data.breakdown?.[key] || { score: 0, shared: [] };
           const scoreVal = bk.score || bk.chemistry || 0;
-          return `<div class="breakdown-item">
-            <div class="breakdown-label" style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;">
-              <span>${icon} ${label}</span>
-              <span style="color:var(--accent2);font-weight:700;">${scoreVal}%</span>
-            </div>
-            <div class="breakdown-bar" style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px;">
-              <div class="breakdown-fill" style="width:${scoreVal}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;"></div>
-            </div>
-            ${bk.shared?.length ? `
-              <div class="breakdown-shared" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
-                ${bk.shared.map(s => `<span class="tag-mini" style="background:rgba(124,106,255,0.12);border:1px solid rgba(124,106,255,0.3);color:var(--text);font-size:11px;padding:2px 8px;border-radius:6px;">${esc(s)}</span>`).join('')}
+          return `
+            <div>
+              <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;margin-bottom:4px;">
+                <span style="color:var(--text-secondary);">${label} (${weight})</span>
+                <span style="color:var(--accent);font-weight:600;">${scoreVal}%</span>
               </div>
-            ` : '<div style="color:var(--text3);font-size:11px;">Evaluated via grounded textual signals and agent interaction</div>'}
-          </div>`;
+              <div class="bar-track"><div class="bar-val" style="width:${scoreVal}%"></div></div>
+              ${bk.shared?.length ? `
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">
+                  ${bk.shared.map(s => `<span class="tag-chip" style="color:var(--text);">${esc(s)}</span>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
         }).join('')}
       </div>
 
       <div style="margin-top:22px;display:flex;gap:10px;">
         <button class="btn btn-primary" style="flex:1;" onclick="closeModal();goDate('${a.id}','${b.id}')">
-          💬 Watch Them Date
+          Simulate Dialogue Between Agents
         </button>
         <button class="btn btn-secondary" style="flex:none;padding:10px 18px;" onclick="closeModal()">
           Close
@@ -1222,8 +1422,7 @@ async function openBreakdown(personAId, personBId) {
   } catch (e) {
     $('modal-body').innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">❌</div>
-        <div class="empty-title">Failed to load breakdown</div>
+        <div class="empty-title">Error Loading Breakdown</div>
         <div class="empty-desc">${esc(e.message)}</div>
         <button class="btn btn-secondary" style="margin-top:14px;" onclick="closeModal()">Close</button>
       </div>
@@ -1243,7 +1442,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 /* ===== DEMO LOAD ===== */
 $('demoBtn').onclick = async () => {
-  setMsg('Loading 25-person precomputed demo…', 'loading');
+  setMsg('Loading 25-person demo dataset…', 'loading');
   $('demoBtn').disabled = true;
   try {
     const r = await fetch('/api/demo');
@@ -1258,7 +1457,7 @@ $('demoBtn').onclick = async () => {
     renderPeople();
     if (state.selected) renderProfile();
     renderRank(state.selected);
-    setMsg(`✓ Demo loaded: ${state.people.length} real people, 300 dates, and rankings ready.`, 'success');
+    setMsg(`✓ Demo loaded: ${state.people.length} people, 300 simulated dates ready.`, 'success');
     activate('people');
   } catch (e) {
     setMsg(e.message, 'error');
@@ -1267,16 +1466,16 @@ $('demoBtn').onclick = async () => {
   }
 };
 
-/* ===== ANALYZE CUSTOM PERSON ===== */
+/* ===== ANALYZE CANDIDATE ===== */
 $('analyzeBtn').onclick = async () => {
   const name = $('name').value.trim();
   const linkedin = $('linkedin').value.trim();
   const instagram = $('instagram').value.trim();
   if (!name || !linkedin || !instagram) {
-    setMsg('Please fill in name, LinkedIn URL, and Instagram URL.', 'error');
+    setMsg('Please fill in candidate name, LinkedIn URL, and Instagram URL.', 'error');
     return;
   }
-  setMsg(`Reading only LinkedIn and Instagram for ${name}…`, 'loading');
+  setMsg(`Reading strictly public LinkedIn and Instagram for ${name}…`, 'loading');
   $('analyzeBtn').disabled = true;
   try {
     const r = await fetch('/api/analyze', {
@@ -1290,7 +1489,6 @@ $('analyzeBtn').onclick = async () => {
     state.people = [...state.people, j];
     state.selected = j.id;
 
-    // Recompute rankings with the full set
     if (state.people.length >= 2) {
       const rr = await fetch('/api/rank', {
         method: 'POST',
