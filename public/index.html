@@ -126,28 +126,203 @@ nav {
 .m-lbl { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; color: var(--text-muted); }
 .m-sep { color: var(--border-strong); font-size: 12px; }
 
-.hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+/* ===== DUAL EXECUTION MODES SECTION ===== */
+.modes-container {
+  margin: 26px 0 24px;
+}
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all .2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: transparent;
+  transition: all .2s ease;
+}
+.mode-card.demo-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.mode-card.demo-card::before {
+  background: var(--accent);
+}
+.mode-card.live-card:hover {
+  border-color: rgba(45, 212, 191, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.mode-card.live-card::before {
+  background: var(--accent-alt);
+}
 
-/* INTAKE DRAWER */
-.candidate-drawer {
-  margin-top: 22px; padding: 22px 26px; background: var(--surface);
-  border: 1px solid var(--accent-border); border-radius: var(--radius);
-  max-width: 860px;
+.mode-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: block;
 }
-.drawer-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
+.mode-kicker.teal { color: var(--accent-alt); }
+
+.mode-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.mode-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
   margin-bottom: 16px;
+  flex: 1;
 }
-.drawer-title { font-family: var(--font-sans); font-size: 15px; font-weight: 700; color: var(--text); }
-.drawer-sub { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.mode-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.meta-pill {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.demo-card .meta-pill { border-color: rgba(232, 186, 130, 0.25); color: var(--accent-light); }
+.live-card .meta-pill { border-color: rgba(45, 212, 191, 0.25); color: #5eead4; }
+
+.mode-action-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mode-main-btn {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.mode-main-btn.live-btn {
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  color: var(--accent-alt);
+}
+.mode-main-btn.live-btn:hover {
+  background: var(--accent-alt);
+  color: #12151c;
+  border-color: var(--accent-alt);
+}
+.mode-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* LIVE FRESH ANALYSIS FORM */
+.live-form-panel {
+  margin-top: 20px;
+  padding: 24px 26px;
+  background: var(--surface);
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  border-radius: var(--radius);
+  animation: fadeIn .2s ease;
+}
+.live-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.live-form-title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.live-form-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
 .drawer-close {
   background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
   width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center;
   justify-content: center; font-size: 11px; cursor: pointer;
 }
 .drawer-close:hover { color: var(--text); border-color: var(--border-strong); }
-.drawer-inputs {
-  display: grid; grid-template-columns: 1fr 1.3fr 1.3fr; gap: 12px;
+
+.quick-prefill-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.quick-lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.prefill-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.prefill-chip:hover {
+  border-color: var(--accent-alt);
+  color: var(--text);
+  background: var(--card2);
+}
+
+.live-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1.3fr;
+  gap: 12px;
+}
+.live-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .field { margin-bottom: 0; }
@@ -164,7 +339,7 @@ nav {
   outline: none;
 }
 .field input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-alt);
   background: var(--card2);
 }
 .field input::placeholder { color: var(--text-muted); font-family: var(--font-sans); }
@@ -729,72 +904,121 @@ nav {
       <div class="m-item"><span class="m-val">100%</span><span class="m-lbl">Deterministic Local NLP</span></div>
     </div>
 
-    <!-- PRIMARY ACTION CONTROLS -->
-    <div class="hero-actions">
-      <button class="btn btn-primary" id="demoBtn">Load 25-Person Demo Dataset</button>
-      <button class="btn btn-secondary" id="toggleFormBtn" onclick="toggleCandidateDrawer()">+ Ingest New Candidate</button>
-    </div>
-    <div id="msg"></div>
+    <!-- DUAL EXECUTION MODES: DEMO & LIVE -->
+    <div class="modes-container">
+      <div class="modes-grid">
+        
+        <!-- MODE 1: WATCH THE FINISHED DEMO -->
+        <div class="mode-card demo-card" id="modeCardDemo">
+          <div class="mode-header">
+            <span class="mode-kicker">Benchmark Execution // 0 Input Required</span>
+            <h2 class="mode-title">Watch the Finished Demo</h2>
+            <p class="mode-desc">Inspect the already-completed 25-person dating simulation. Follow the sequential progression through verified candidate profiles, multi-turn agent dates, and dating-influenced compatibility rankings.</p>
+          </div>
+          
+          <div class="mode-meta-pills">
+            <span class="meta-pill">25 Verified Figures</span>
+            <span class="meta-pill">50 Public Sources</span>
+            <span class="meta-pill">300 Agent Dates</span>
+            <span class="meta-pill">Final Rankings</span>
+          </div>
 
-    <!-- STRAIGHT CANDIDATE INTAKE DRAWER -->
-    <div id="customCandidateDrawer" class="candidate-drawer hidden">
-      <div class="drawer-header">
-        <div>
-          <div class="drawer-title">Analyze Custom Candidate</div>
-          <div class="drawer-sub">Strict 2-source boundary. Evaluated locally via Playwright + Cheerio + local NLP engine.</div>
+          <div class="mode-action-wrap">
+            <button class="btn btn-primary mode-main-btn" id="demoBtn">View 25-Person Demo</button>
+            <div class="mode-hint">No configuration or API keys needed. Loads full dataset instantly.</div>
+          </div>
         </div>
-        <button class="drawer-close" onclick="toggleCandidateDrawer()" title="Close">✕</button>
+
+        <!-- MODE 2: TRY YOUR OWN PROFILES -->
+        <div class="mode-card live-card" id="modeCardLive">
+          <div class="mode-header">
+            <span class="mode-kicker teal">Interactive Live Run // Public Sources</span>
+            <h2 class="mode-title">Try Your Own Profiles</h2>
+            <p class="mode-desc">Run a fresh autonomous agent analysis on any real person. The agent reads strictly two public sources — their public LinkedIn and public Instagram — extracts grounded evidence, and dates other candidates live.</p>
+          </div>
+
+          <div class="mode-meta-pills">
+            <span class="meta-pill">Strict 2-Source Scope</span>
+            <span class="meta-pill">Playwright Scraper</span>
+            <span class="meta-pill">Deterministic NLP</span>
+            <span class="meta-pill">Live Matchmaker</span>
+          </div>
+
+          <div class="mode-action-wrap">
+            <button class="btn btn-secondary mode-main-btn live-btn" id="liveModeToggleBtn" onclick="toggleLiveForm()">Try Live Analysis</button>
+            <div class="mode-hint">Provide Name + public LinkedIn URL + public Instagram URL.</div>
+          </div>
+        </div>
+
       </div>
-      <div class="drawer-inputs">
-        <div class="field">
-          <label>Candidate Name</label>
-          <input id="name" placeholder="Full Name" autocomplete="off">
+
+      <!-- FRESH ANALYSIS FORM (FOR LIVE MODE) -->
+      <div id="liveAnalysisSection" class="live-form-panel hidden">
+        <div class="live-form-header">
+          <div>
+            <div class="live-form-title">Live Candidate Intake &amp; Agent Analysis</div>
+            <div class="live-form-sub">Enforcing strict 2-source boundary (LinkedIn profile + Instagram profile). Zero external AI APIs.</div>
+          </div>
+          <button class="drawer-close" onclick="toggleLiveForm()" title="Close Form">✕</button>
         </div>
-        <div class="field">
-          <label>LinkedIn Public URL</label>
-          <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" autocomplete="off">
+
+        <!-- SAMPLE PREFILL QUICK ACCESS PILLS -->
+        <div class="quick-prefill-bar">
+          <span class="quick-lbl">One-Click Test Candidates:</span>
+          <button type="button" class="prefill-chip" onclick="prefillCandidate('Satya Nadella', 'https://www.linkedin.com/in/satyanadella/', 'https://www.instagram.com/satyanadella/')">Satya Nadella</button>
+          <button type="button" class="prefill-chip" onclick="prefillCandidate('Dharmesh Shah', 'https://www.linkedin.com/in/dharmesh/', 'https://www.instagram.com/dharmeshshah/')">Dharmesh Shah</button>
+          <button type="button" class="prefill-chip" onclick="prefillCandidate('Vineeta Singh', 'https://www.linkedin.com/in/vineetasingh/', 'https://www.instagram.com/vineetasng/')">Vineeta Singh</button>
+          <button type="button" class="prefill-chip" onclick="clearLiveForm()">Clear Form</button>
         </div>
-        <div class="field">
-          <label>Instagram Public URL</label>
-          <input id="instagram" placeholder="https://www.instagram.com/username/" autocomplete="off">
+
+        <div class="live-form-grid">
+          <div class="field">
+            <label>Full Name</label>
+            <input id="name" placeholder="e.g., Satya Nadella" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Public LinkedIn Profile URL</label>
+            <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Public Instagram Profile URL</label>
+            <input id="instagram" placeholder="https://www.instagram.com/username/" autocomplete="off">
+          </div>
         </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-        <button class="btn btn-primary" id="analyzeBtn" style="padding:10px 22px;">Analyze &amp; Ingest Candidate →</button>
+
+        <div class="live-form-footer">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">
+            Scrapes public text, generates evidence dossier, dates other agents, and recomputes rankings.
+          </div>
+          <button class="btn btn-primary" id="analyzeBtn" style="padding:10px 24px;">Run Live Agent Analysis →</button>
+        </div>
       </div>
     </div>
+
+    <div id="msg"></div>
   </div>
 
-  <!-- PIPELINE PROGRESSION INDICATOR -->
+  <!-- WORKSPACE ANCHOR & PIPELINE PROGRESSION INDICATOR -->
+  <div id="mainWorkspace"></div>
   <div class="pipeline-bar">
     <div class="pipeline-step active" id="p-step-1" onclick="activate('people')">
       <span class="p-num">1</span>
-      <span>25 Profiles</span>
+      <span>Candidate Profiles</span>
     </div>
     <div class="p-arrow">→</div>
     <div class="pipeline-step" id="p-step-2" onclick="activate('profile');">
       <span class="p-num">2</span>
-      <span>Source Reading</span>
+      <span>Profile Dossier &amp; Sources</span>
     </div>
     <div class="p-arrow">→</div>
-    <div class="pipeline-step" id="p-step-3" onclick="activate('profile');">
+    <div class="pipeline-step" id="p-step-3" onclick="activate('date');">
       <span class="p-num">3</span>
-      <span>Profile Dossier</span>
+      <span>Agent Dating Dialogue</span>
     </div>
     <div class="p-arrow">→</div>
-    <div class="pipeline-step" id="p-step-4" onclick="activate('date');">
+    <div class="pipeline-step" id="p-step-4" onclick="activate('rank');">
       <span class="p-num">4</span>
-      <span>Agent Dating</span>
-    </div>
-    <div class="p-arrow">→</div>
-    <div class="pipeline-step" id="p-step-5" onclick="activate('date');">
-      <span class="p-num">5</span>
-      <span>Date Transcript</span>
-    </div>
-    <div class="p-arrow">→</div>
-    <div class="pipeline-step" id="p-step-6" onclick="activate('rank');">
-      <span class="p-num">6</span>
-      <span>Rankings Ledger</span>
+      <span>Final Rankings Ledger</span>
     </div>
   </div>
 
@@ -845,9 +1069,31 @@ function initials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function toggleCandidateDrawer() {
-  const d = $('customCandidateDrawer');
-  if (d) d.classList.toggle('hidden');
+function toggleLiveForm(open = null) {
+  const panel = $('liveAnalysisSection');
+  if (!panel) return;
+  const isHidden = panel.classList.contains('hidden');
+  const shouldOpen = open !== null ? open : isHidden;
+  panel.classList.toggle('hidden', !shouldOpen);
+  if (shouldOpen) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => $('name')?.focus(), 250);
+  }
+}
+
+function prefillCandidate(name, li, ig) {
+  toggleLiveForm(true);
+  $('name').value = name;
+  $('linkedin').value = li;
+  $('instagram').value = ig;
+  setMsg(`Prefilled: ${name}. Click "Run Live Agent Analysis →" to analyze live.`, 'success');
+}
+
+function clearLiveForm() {
+  $('name').value = '';
+  $('linkedin').value = '';
+  $('instagram').value = '';
+  setMsg('Live analysis form cleared.', '');
 }
 
 function setMsg(text, type = '') {
@@ -866,9 +1112,9 @@ function updateStats() {
 }
 
 function updatePipelineBar(tab) {
-  const stepMap = { people: 1, profile: 3, date: 4, rank: 6 };
+  const stepMap = { people: 1, profile: 2, date: 3, rank: 4 };
   const num = stepMap[tab] || 1;
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 4; i++) {
     const el = $(`p-step-${i}`);
     if (el) el.classList.toggle('active', i === num);
   }
@@ -1454,13 +1700,13 @@ function closeModal() {
 $('modal').onclick = e => { if (e.target === $('modal')) closeModal(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-/* ===== DEMO LOAD ===== */
+/* ===== MODE 1: DEMO EXECUTION HANDLER ===== */
 $('demoBtn').onclick = async () => {
-  setMsg('Loading 25-person demo dataset…', 'loading');
+  setMsg('Loading finished 25-person dating demo…', 'loading');
   $('demoBtn').disabled = true;
   try {
     const r = await fetch('/api/demo');
-    if (!r.ok) throw new Error('Demo load failed');
+    if (!r.ok) throw new Error('Demo dataset retrieval failed');
     const j = await r.json();
     state.people = j.people || [];
     state.rankings = j.rankings || {};
@@ -1471,8 +1717,10 @@ $('demoBtn').onclick = async () => {
     renderPeople();
     if (state.selected) renderProfile();
     renderRank(state.selected);
-    setMsg(`✓ Demo loaded: ${state.people.length} candidates, 300 simulated dates ready.`, 'success');
+    renderDateSelector();
+    setMsg(`✓ Finished 25-Person Demo active. Showing candidate profiles first, followed by agent dating and final rankings.`, 'success');
     activate('people');
+    $('mainWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setMsg(e.message, 'error');
   } finally {
@@ -1480,16 +1728,16 @@ $('demoBtn').onclick = async () => {
   }
 };
 
-/* ===== ANALYZE CANDIDATE ===== */
+/* ===== MODE 2: LIVE PROFILE ANALYSIS HANDLER ===== */
 $('analyzeBtn').onclick = async () => {
   const name = $('name').value.trim();
   const linkedin = $('linkedin').value.trim();
   const instagram = $('instagram').value.trim();
   if (!name || !linkedin || !instagram) {
-    setMsg('Please fill in candidate name, LinkedIn URL, and Instagram URL.', 'error');
+    setMsg('Please fill in candidate Name, public LinkedIn URL, and public Instagram URL.', 'error');
     return;
   }
-  setMsg(`Reading strictly public LinkedIn and Instagram for ${name}…`, 'loading');
+  setMsg(`Running live agent analysis: reading strictly public LinkedIn and Instagram for ${name}…`, 'loading');
   $('analyzeBtn').disabled = true;
   try {
     const r = await fetch('/api/analyze', {
@@ -1498,12 +1746,13 @@ $('analyzeBtn').onclick = async () => {
       body: JSON.stringify({ name, linkedin, instagram })
     });
     const j = await r.json();
-    if (!r.ok) { setMsg(j.error || 'Analysis failed.', 'error'); return; }
+    if (!r.ok) { setMsg(j.error || 'Live analysis failed.', 'error'); return; }
 
-    state.people = [...state.people, j];
+    state.people = [...state.people.filter(p => p.id !== j.id), j];
     state.selected = j.id;
 
     if (state.people.length >= 2) {
+      setMsg(`Simulating live agent dates and re-ranking for ${name}…`, 'loading');
       const rr = await fetch('/api/rank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1516,8 +1765,11 @@ $('analyzeBtn').onclick = async () => {
     updateStats();
     renderPeople();
     renderProfile();
-    setMsg(`✓ Grounded agent created for ${name}.`, 'success');
+    renderRank(j.id);
+    renderDateSelector();
+    setMsg(`✓ Live analysis complete for ${name}! Grounded profile dossier generated. Proceed to Agent Dating and Final Rankings below.`, 'success');
     activate('profile');
+    $('mainWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setMsg(e.message, 'error');
   } finally {
@@ -1525,7 +1777,7 @@ $('analyzeBtn').onclick = async () => {
   }
 };
 
-/* ===== INIT ===== */
+/* ===== INITIALIZATION ===== */
 renderPeople();
 $('demoBtn').click();
 </script>
