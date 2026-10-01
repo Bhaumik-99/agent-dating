@@ -202,9 +202,21 @@ export function compatibility(personA, personB, existingDate = null) {
  * Computes rankings for every person incorporating simulated dates.
  */
 export function rankPeople(people, datesMap = {}) {
-  return Object.fromEntries(people.map(p => {
-    const list = people
-      .filter(x => x.id !== p.id)
+  // Deduplicate input list by normalized name and ID
+  const seenKeys = new Set();
+  const cleanPeople = [];
+  for (const p of people || []) {
+    const key = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') || p.id;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      cleanPeople.push(p);
+    }
+  }
+
+  return Object.fromEntries(cleanPeople.map(p => {
+    const pKey = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const list = cleanPeople
+      .filter(x => x.id !== p.id && (x.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') !== pKey)
       .map(x => {
         const key = `${p.id}_${x.id}`;
         const revKey = `${x.id}_${p.id}`;

@@ -1804,6 +1804,8 @@ function renderRank(forPersonId) {
   }
 
   const personId = forPersonId || el.querySelector('.rank-select-input')?.value || state.people[0]?.id;
+  const targetPerson = state.people.find(p => p.id === personId) || { name: '' };
+  const targetAlpha = (targetPerson.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
   el.innerHTML = `
     <div class="rank-controls-row">
@@ -1819,7 +1821,13 @@ function renderRank(forPersonId) {
   `;
 
   const list = $('rankList');
-  const ranks = state.rankings[personId] || [];
+  const rawRanks = state.rankings[personId] || [];
+  const ranks = rawRanks.filter(r => {
+    if (r.id === personId) return false;
+    const rAlpha = (r.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (targetAlpha && rAlpha === targetAlpha) return false;
+    return true;
+  });
 
   if (!ranks.length) {
     list.innerHTML = `<div style="font-family:var(--font-mono);font-size:13px;color:var(--text-muted);">No rankings computed yet.</div>`;
